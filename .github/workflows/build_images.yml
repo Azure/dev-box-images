@@ -53,7 +53,7 @@ jobs:
               const contents = await fs.readFile(file, 'utf8');
               const image = yaml.load(contents);
 
-              core.info(image);
+              core.info(contents);
 
               if (!image.version) {
 
@@ -65,7 +65,7 @@ jobs:
                 core.info(sigList.exitCode);
                 core.info(sigList.stdout);
 
-                if (sigList.exitCode === 0) {
+                if (sigList.exitCode === 0 && sigList.stdout) {
 
                   const sig = JSON.parse(sigList.stdout);
                   core.info(sig);
