@@ -24,10 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - run: npm install js-yaml
 
@@ -45,14 +45,15 @@ jobs:
             const files = await globber.glob();
 
             for (const file of files) {
-              core.info(file)
+              core.info(`Found image configuration file at ${file}`);
 
+              // Get image name from folder
               const imageName = file.split('/').slice(-2)[0];
 
               const contents = await fs.readFile(file, 'utf8');
               const image = yaml.load(contents);
 
-              core.info(image);
+              # core.info(image);
 
               if (!image.version) {
 
@@ -64,11 +65,14 @@ jobs:
                 core.info(sigList.exitCode)
 
                 if (sigList.exitCode === 0) {
-                  const sig = JSON.parse(sigList.stdout);
 
+                  const sig = JSON.parse(sigList.stdout);
                   core.info(JSON.stringify(sig));
+
                 } else {
+
                   core.warning(`Did not find existing image ${imageName}`);
+
                 }
               }
             };
