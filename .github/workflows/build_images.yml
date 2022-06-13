@@ -62,12 +62,13 @@ jobs:
               } else {
 
                 const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
-                core.info(sigList.exitCode)
+                core.info(sigList.exitCode);
+                core.info(sigList.stdout);
 
                 if (sigList.exitCode === 0) {
 
                   const sig = JSON.parse(sigList.stdout);
-                  core.info(JSON.stringify(sig));
+                  core.info(sig);
 
                 } else {
 
