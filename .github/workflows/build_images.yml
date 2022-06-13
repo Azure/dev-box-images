@@ -63,9 +63,13 @@ jobs:
                 const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
                 core.info(sigList.exitCode)
 
-                const sig = JSON.parse(sigList.stdout);
-                core.info(JSON.stringify(sig));
+                if (sigList.exitCode === 0) {
+                  const sig = JSON.parse(sigList.stdout);
 
+                  core.info(JSON.stringify(sig));
+                } else {
+                  core.warning(`Did not find existing image ${imageName}`);
+                }
               }
             };
 
