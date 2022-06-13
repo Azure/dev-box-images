@@ -1,0 +1,197 @@
+name: Build Images
+
+env:
+  resourceGroup: Compute-Gallery
+  galleryName: Contoso
+
+# defaults:
+#   run:
+#     shell: bash
+
+concurrency: ${{ github.ref }}
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+
+    # outputs:
+    #     matrix: ${{ steps.packer-definitions.outputs.matrix }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # - name: Login to Azure
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: npm install js-yaml
+
+      - name: Get Image Definitions
+        id: packer-definitions
+        uses: actions/github-script@v6
+        with:
+          script: |
+
+            const fs = require('fs/promises');
+            const yaml = require('js-yaml');
+
+            const patterns = ['**/image.yml', '**/image.yaml']
+            const globber = await glob.create(patterns.join('\n'));
+            const files = await globber.glob();
+
+            for (const file of files) {
+              console.log(file)
+
+              const contents = await fs.readFile(file, 'utf8');
+              const image = yaml.load(contents);
+
+              console.log(image);
+            };
+
+  #     - name: Detect Packer Definitions
+  #       id: packer-definitions
+  #       run: |
+
+  #         IMAGES=()
+
+  #         while read IMAGE; do
+
+  #           IMAGEFOLDER="$(dirname "$IMAGE")"
+  #           IMAGENAME="$(basename "$IMAGEFOLDER")"
+  #           IMAGEVERSION="$(cat "$IMAGE" | jq --raw-output '.version')"
+
+  #           if [[ -z "$IMAGEVERSION" ]]; then
+
+  #             echo "::warning::Skipping $IMAGE because of missing version information"
+
+  #           elif [[ -z "$(az sig image-version list --gallery-image-definition $IMAGENAME --gallery-name ${{ env.galleryName }} --resource-group ${{ env.resourceGroup }} --query "[?name == '$IMAGEVERSION'] | [0]")" ]]; then
+
+  #             echo "Detected image $IMAGE (new version)"
+  #             IMAGES+=("$IMAGE")
+
+  #           else
+
+  #             while read IMAGEFILTER; do
+  #               if [[ "$IMAGEFILTER" == "*" ]]; then
+  #                 echo "Detected force update of image '$IMAGE'"
+  #                 IMAGES+=("$IMAGE")
+  #                 break
+  #               else
+  #                 readarray -d '' FORCEPATTERNS < <(find . -type f -path "./images/$IMAGEFILTER/_image.json" -print0)
+  #                 echo "Eval force filter '$IMAGEFILTER' on image '$IMAGE'"; printf '%s\n' "${FORCEPATTERNS[@]}"
+  #                 if [[ "|${FORCEPATTERNS[@]}|" =~ "|$IMAGE|" ]]; then
+  #                   echo "Detected force update of image '$IMAGE'"
+  #                   IMAGES+=("$IMAGE")
+  #                   break
+  #                 fi
+  #               fi
+  #             done < <(echo "${{ github.event.head_commit.message }}" | grep -Po '(?<=\sforce\:)\S+')
+
+  #           fi
+
+  #         done < <(find . -type f -path './images/*/_image.json')
+
+  #         if [ ${#IMAGES[@]} -eq 0 ]; then
+  #             echo "No images to build"
+  #             echo "::set-output name=matrix::[]"
+  #         else
+  #             echo "Images to build:"; printf '%s\n' "${IMAGES[@]}"
+  #             echo "::set-output name=matrix::$(printf '%s\n' "${IMAGES[@]}" | jq -R -s -c 'split("\n")[:-1]')"
+  #         fi
+
+  # build:
+  #   needs: prepare
+  #   runs-on: ubuntu-latest
+
+  #   # this is needed to avoid workflow errors in case of an empty matrix
+  #   if: ${{ fromJSON( needs.prepare.outputs.matrix )[0] }}
+
+  #   strategy:
+  #       matrix:
+  #           imagePath: ${{ fromJson(needs.prepare.outputs.matrix) }}
+
+  #   steps:
+  #     - uses: actions/checkout@v2
+
+  #     - name: Login to Azure
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  #     - name: Ensure Image
+  #       continue-on-error: true
+  #       run: |
+
+  #         # create image definition in gallery - this will fail if already exists
+  #         az sig image-definition create \
+  #           --resource-group "${{ env.resourceGroup }}" \
+  #           --gallery-name "${{ env.galleryName }}" \
+  #           --gallery-image-definition "$(basename "$(dirname "${{ matrix.imagePath }}")")" \
+  #           --publisher "$(cat ${{ matrix.imagePath }} | jq --raw-output '.publisher')" \
+  #           --offer "$(cat ${{ matrix.imagePath }} | jq --raw-output '.offer')" \
+  #           --sku "$(cat ${{ matrix.imagePath }} | jq --raw-output '.sku')" \
+  #           --os-type "$(cat ${{ matrix.imagePath }} | jq --raw-output '.os')" \
+  #           --os-state Generalized \
+  #           --hyper-v-generation v2 \
+  #           --features SecurityType=TrustedLaunch \
+  #           --only-show-errors \
+  #           --output none
+
+  #     - name: Setup Packer
+  #       uses: hashicorp-contrib/setup-packer@v1.0.0
+
+  #     - name: Build Image
+  #       timeout-minutes: 60
+  #       run: |
+
+  #         IMAGEFOLDER="$(dirname ${{ matrix.imagePath }})"
+  #         IMAGENAME="$(basename "$IMAGEFOLDER")"
+  #         IMAGEVERSION="$(cat ${{ matrix.imagePath }} | jq --raw-output '.version')"
+  #         IMAGELOCATION="$(az sig show --resource-group ${{ env.resourceGroup }} --gallery-name ${{ env.galleryName }} --query location -o tsv)"
+
+  #         echo "IMAGEFOLDER:     $IMAGEFOLDER"
+  #         echo "IMAGENAME:       $IMAGENAME"
+  #         echo "IMAGEVERSION:    $IMAGEVERSION"
+  #         echo "IMAGEDEFINITION: $(jq . ${{ matrix.imagePath }})"
+
+  #         # switch context to image folder
+  #         cd "$(echo $IMAGEFOLDER | tr -d '\r')"; echo "Executing $(packer version) in $PWD"
+
+  #         # run packer to build the image
+  #         packer build -force \
+  #           -var "image=$IMAGENAME" \
+  #           -var "version=$IMAGEVERSION" \
+  #           -var "location=$IMAGELOCATION" \
+  #           -var "subscription=$(az account show --query 'id' -o tsv)" \
+  #           -var "resourceGroup=${{ env.resourceGroup }}" \
+  #           -var "galleryName=${{ env.galleryName }}" \
+  #           -var "branch=${{ github.ref }}" \
+  #           -var "commit=${{ github.sha }}" \
+  #           . # <== run in the current folder
+
+  #         exit $?
+
+  # cleanup:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+
+  #   # ensure we always cleanup
+  #   if: always()
+
+  #   steps:
+  #     - name: Login to Azure
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  #     - name: Delete Artifacts
+  #       run: |
+
+  #         while read RESOURCEGROUP; do
+  #           az group delete --resource-group $RESOURCEGROUP --no-wait --yes
+  #         done < <(az group list --query "[?starts_with(@.name, 'pkr-Resource-Group-')].name" -o tsv)

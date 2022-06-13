@@ -6,3 +6,8 @@ crash.log
 
 # For built boxes
 *.box
+
+[lL]ocal
+.[lL]ocal
+
+.DS_Store
