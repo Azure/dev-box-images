@@ -40,6 +40,8 @@ jobs:
             const fs = require('fs/promises');
             const yaml = require('js-yaml');
 
+            let images = [];
+
             const patterns = ['**/image.yml', '**/image.yaml']
             const globber = await glob.create(patterns.join('\n'));
             const files = await globber.glob();
@@ -53,6 +55,9 @@ jobs:
               const contents = await fs.readFile(file, 'utf8');
               const image = yaml.load(contents);
 
+              image.source = file.split('/image.y')[0];
+              core.info(image.source);
+
               core.info(contents);
 
               if (!image.version) {
@@ -62,8 +67,10 @@ jobs:
               } else {
 
                 const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
-                core.info(sigList.exitCode);
-                core.info(sigList.stdout);
+                # core.info(sigList.exitCode);
+                # core.info(sigList.stdout);
+
+                images.push(image);
 
                 if (sigList.exitCode === 0 && sigList.stdout) {
 
@@ -77,6 +84,8 @@ jobs:
                 }
               }
             };
+
+            core.info(JSON.stringify(images));
 
   #     - name: Detect Packer Definitions
   #       id: packer-definitions
