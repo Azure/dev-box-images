@@ -45,12 +45,28 @@ jobs:
             const files = await globber.glob();
 
             for (const file of files) {
-              console.log(file)
+              core.info(file)
+
+              const imageName = file.split('/').slice(-2)[0];
 
               const contents = await fs.readFile(file, 'utf8');
               const image = yaml.load(contents);
 
-              console.log(image);
+              core.log(image);
+
+              if (!image.version) {
+
+                core.warning(`Skipping ${imageName} because of missing version information`);
+
+              } else {
+
+                const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
+                core.info(sigList.exitCode)
+
+                const sig = JSON.parse(sigList.stdout);
+                core.info(JSON.stringify(sig));
+
+              }
             };
 
   #     - name: Detect Packer Definitions
