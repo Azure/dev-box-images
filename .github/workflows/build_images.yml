@@ -53,7 +53,7 @@ jobs:
               const contents = await fs.readFile(file, 'utf8');
               const image = yaml.load(contents);
 
-              # core.info(image);
+              core.info(image);
 
               if (!image.version) {
 
