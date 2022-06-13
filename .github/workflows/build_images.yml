@@ -40,7 +40,9 @@ jobs:
             const fs = require('fs/promises');
             const yaml = require('js-yaml');
 
-            let images = [];
+            let matrix = {
+              include: []
+            };
 
             const patterns = ['**/image.yml', '**/image.yaml']
             const globber = await glob.create(patterns.join('\n'));
@@ -70,7 +72,7 @@ jobs:
                 // core.info(sigList.exitCode);
                 // core.info(sigList.stdout);
 
-                images.push(image);
+                matrix.include.push(image);
 
                 if (sigList.exitCode === 0 && sigList.stdout) {
 
@@ -85,7 +87,9 @@ jobs:
               }
             };
 
-            core.info(JSON.stringify(images));
+            core.info(JSON.stringify(matrix.include));
+
+            core.setOutput('matrix', JSON.stringify(matrix));
 
   #     - name: Detect Packer Definitions
   #       id: packer-definitions
