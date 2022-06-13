@@ -67,8 +67,8 @@ jobs:
               } else {
 
                 const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
-                # core.info(sigList.exitCode);
-                # core.info(sigList.stdout);
+                // core.info(sigList.exitCode);
+                // core.info(sigList.stdout);
 
                 images.push(image);
 
