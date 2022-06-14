@@ -5,14 +5,7 @@ const yaml = require('js-yaml');
 module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const { resourceGroup, galleryName } = process.env;
-
-    let matrix = {
-        include: []
-    };
-
-    const patterns = ['**/image.yml', '**/image.yaml']
-    const globber = await glob.create(patterns.join('\n'));
-    const files = await globber.glob();
+    const workspace = process.env.GITHUB_WORKSPACE;
 
     const compare = await github.rest.repos.compareCommitsWithBasehead({
         owner: context.repo.owner,
@@ -20,21 +13,14 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         basehead: `${context.payload.before}...${context.payload.after}`
     });
 
-    // core.info(`Compare response: ${JSON.stringify(compare, null, 2)}`);
-
     const changes = compare.data.files.map(f => f.filename);
 
-    // core.info(`Context: ${JSON.stringify(context, null, 2)}`);
-    // core.info(`github: ${JSON.stringify(github, null, 2)}`);
 
-    core.info('CHANGES');
-    for (const change of changes) {
-        core.info(`... ${change}`);
-    }
+    const patterns = ['**/image.yml', '**/image.yaml']
+    const globber = await glob.create(patterns.join('\n'));
+    const files = await globber.glob();
 
-    const workspace = process.env.GITHUB_WORKSPACE;
-
-    core.info(`WORKSPACE ${workspace}`);
+    let include = [];
 
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
@@ -45,34 +31,15 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const contents = await fs.readFile(file, 'utf8');
         const image = yaml.load(contents);
 
-
-        image.gallery = galleryName;
         image.name = imageName;
+        image.gallery = galleryName;
         image.resourceGroup = resourceGroup;
-
 
         image.source = file.split('/image.y')[0];
         image.path = image.source.split(`${workspace}/`)[1];
-        image.changed = changes.some(change => change.startsWith(image.path));
+        image.changed = changes.some(change => change.startsWith(image.path) || change.startsWith(`scripts/`));
 
         image.locations = JSON.stringify(image.locations);
-        // core.info('  ');
-        // core.info(`SOURCE: ${image.source}`);
-        // core.info(`PATH: ${image.path}`);
-        // core.info(`CHANGED: ${image.changed}`);
-
-        // core.info(image.source);
-
-        // core.info(contents);
-
-        // core.info('## Payload ##');
-        // core.info(context.payload);
-
-        // core.info('## Payload json ##');
-        // core.info(JSON.stringify(context.payload, null, 2));
-
-        // core.info('## Payload Commits json ##');
-        // core.info(JSON.stringify(context.payload.commits, null, 2));
 
         if (!image.version) {
             core.warning(`Skipping ${imageName} because of missing version information`);
@@ -92,7 +59,6 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             if (imgDefShow.exitCode === 0) {
                 core.info(`Found existing image ${imageName}`);
                 const img = JSON.parse(imgDefShow.stdout);
-                // image.id = img.id;
                 image.location = img.location;
             } else if (imgDefShow.stderr.includes('Code: ResourceNotFound')) {
 
@@ -120,7 +86,6 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 if (imgDefCreate.exitCode === 0) {
                     core.info(`Created image definition for ${imageName}`);
                     const img = JSON.parse(imgDefCreate.stdout);
-                    // image.id = img.id;
                     image.location = img.location;
                 } else {
                     core.setFailed(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
@@ -130,56 +95,39 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 core.setFailed(`Failed to get image definition for ${imageName} \n ${imgDefShow.stderr}`);
             }
 
-            // check it the image definition changed
-
-            // image.subscription = image.id.split('/')[2];
-
-            const imgVersionListCmd = [
-                'sig', 'image-version', 'list',
+            const imgVersionShowCmd = [
+                'sig', 'image-version', 'show',
                 '--only-show-errors',
                 '-g', resourceGroup,
                 '-r', galleryName,
-                '-i', imageName
+                '-i', imageName,
+                '-v', image.version
             ];
 
-            core.info(`Checking if image version exists for ${imageName}`);
-            const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { silent: true, ignoreReturnCode: true });
+            const imgVersionShow = await exec.getExecOutput('az', imgVersionShowCmd, { silent: true, ignoreReturnCode: true });
 
-            core.info(`imgVersionList response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
+            core.info(`Checking if image version ${image.version} already exists for ${imageName}`);
+            if (imgVersionShow.exitCode !== 0 && imgVersionShow.stderr.includes('Code: ResourceNotFound')) {
 
-            const imgVersions = JSON.parse(imgVersionList.stdout);
+                core.info(`Image version ${image.version} does not exist for ${imageName}`);
+                include.push(image);
 
-            if (!imgVersions || imgVersions.length === 0 || !imgVersions.some(v => v.version === image.version)) {
-                core.info(`Image versions count ${imgVersions.length}`);
-
-                matrix.include.push(image);
+            } else if (image.changed) {
+                core.setFailed(`Image version ${image.version} already exists for ${imageName} but image definition changed. Please update the version number or delete the image version and try again.`);
+            } else {
+                core.info(`Image version ${image.version} already exists for ${imageName} and image definition is unchanged. Skipping`);
             }
-
-            // for (const imgVersion of imgVersions) {
-
-            //     if (true) {
-            //     }
-            // }
-
-
-            // matrix.include.push(image);
-
-
-
-            // if (imgVersionList.exitCode === 0 && imgVersionList.stdout) {
-
-            //     const sig = JSON.parse(imgVersionList.stdout);
-            //     core.info(sig);
-
-            // } else {
-
-            //     core.warning(`Could not find an existing image named ${imageName}`);
-
-            // }
         }
     };
 
-    core.info(JSON.stringify(matrix));
+    await core.summary.addTable([
+        [{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }],
+        include.map(i => [i.name, i.publisher, i.offer, i.sku, i.os, i.version]),
+    ]).write();
+
+    const matrix = {
+        include: include
+    };
 
     core.setOutput('matrix', JSON.stringify(matrix));
 };
