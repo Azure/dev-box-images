@@ -148,7 +148,9 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         for (const i of include) {
             rows.push([i.name, i.publisher, i.offer, i.sku, i.os, i.version]);
         }
-        await core.summary.addTable(rows).write();
+        await core.summary
+            .addHeading('Images prepared for update', 3)
+            .addTable(rows).write();
     } else {
         await core.summary.addHeading('No images were built', 4).write();
     }
