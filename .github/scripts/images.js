@@ -22,13 +22,13 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     // core.info(`Compare response: ${JSON.stringify(compare, null, 2)}`);
 
-    const changed = compare.data.files.map(f => f.filename);
+    const changes = compare.data.files.map(f => f.filename);
 
     // core.info(`Context: ${JSON.stringify(context, null, 2)}`);
     // core.info(`github: ${JSON.stringify(github, null, 2)}`);
 
     core.info('CHANGES');
-    for (const change of changed) {
+    for (const change of changes) {
         core.info(`... ${change}`);
     }
 
@@ -45,13 +45,17 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const contents = await fs.readFile(file, 'utf8');
         const image = yaml.load(contents);
 
+        core.info('  ');
+
         image.source = file.split('/image.y')[0];
         core.info(`SOURCE: ${image.source}`);
 
-        const folderPaths = file.split(`${workspace}/`);
-        for (const folderPath of folderPaths) {
-            core.info(`FOLDER PATH: ${folderPath}`);
-        };
+        image.path = image.source.split(`${workspace}/`)[1];
+        core.info(`PATH: ${image.path}`);
+
+        const changed = changes.some(change => change.startsWith(image.path));
+        core.info(`CHANGED: ${changed}`);
+
         // core.info(image.source);
 
         // core.info(contents);
