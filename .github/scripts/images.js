@@ -29,7 +29,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.info(`... ${change}`);
     }
 
-    core.info(`Context workspace ${context.workspace}`);
+    core.info(`Context workspace ${github.workspace}`);
 
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
@@ -43,7 +43,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         image.source = file.split('/image.y')[0];
         core.info(`SOURCE: ${image.source}`);
 
-        const folderPaths = file.split(`${context.workspace}/`);
+        const folderPaths = file.split(`${github.workspace}/`);
         for (const folderPath of folderPaths) {
             core.info(`FOLDER PATH: ${folderPath}`);
         };
