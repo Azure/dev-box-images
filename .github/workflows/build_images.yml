@@ -80,6 +80,7 @@ jobs:
             -var "subscription=$(az account show --query 'id' -o tsv)" \
             -var "resourceGroup=${{ matrix.resourceGroup }}" \
             -var "galleryName=${{ matrix.gallery }}" \
+            -var 'replicaLocations=${{ matrix.locations }}'' \
             -var "branch=${{ github.ref }}" \
             -var "commit=${{ github.sha }}" \
             . # <== run in the current folder
