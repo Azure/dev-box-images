@@ -140,7 +140,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgVersions = JSON.parse(imgVersionList.stdout);
 
             if (!imgVersions || imgVersions.length === 0 || !imgVersions.some(v => v.version === image.version)) {
-                core.warning(`Image version ${imgVersion.name}`);
+                core.warning(`Image versions count ${imgVersions.length}`);
 
                 matrix.include.push(image);
             }
