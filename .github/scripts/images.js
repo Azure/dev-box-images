@@ -55,6 +55,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         image.path = image.source.split(`${workspace}/`)[1];
         image.changed = changes.some(change => change.startsWith(image.path));
 
+        image.locations = JSON.stringify(image.locations);
         // core.info('  ');
         // core.info(`SOURCE: ${image.source}`);
         // core.info(`PATH: ${image.path}`);
