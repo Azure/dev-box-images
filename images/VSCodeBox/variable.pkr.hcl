@@ -28,11 +28,11 @@ variable "location" {
   description = "The location to use for the build"
 }
 
-// variable "replicaLocations" {
-//   type    = list(string)
-//   default = []
-//   description = "The locations to replicate the image to"
-// }
+variable "replicaLocations" {
+  type    = list(string)
+  default = []
+  description = "The locations to replicate the image to"
+}
 
 variable "resourceGroup" {
   type    = string

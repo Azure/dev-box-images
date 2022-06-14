@@ -26,7 +26,7 @@ source "azure-arm" "vm" {
     gallery_name         = var.galleryName
     image_name           = var.image
     image_version        = var.version
-    // replication_regions  = var.replicaLocations
+    replication_regions  = var.replicaLocations
     storage_account_type = "Standard_LRS"
   }
 }
