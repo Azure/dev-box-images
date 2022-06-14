@@ -36,7 +36,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const script = require('./github/scripts/images.js');
+            const script = require('./.github/scripts/images.js');
             await script({github, context, core, glob, exec});
 
       # - name: Get Image Definitions
