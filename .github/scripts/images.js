@@ -24,15 +24,17 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const changed = compare.data.files.map(f => f.filename);
 
-    core.info(`Context: ${JSON.stringify(context, null, 2)}`);
-    core.info(`github: ${JSON.stringify(github, null, 2)}`);
+    // core.info(`Context: ${JSON.stringify(context, null, 2)}`);
+    // core.info(`github: ${JSON.stringify(github, null, 2)}`);
 
     core.info('CHANGES');
     for (const change of changed) {
         core.info(`... ${change}`);
     }
 
-    core.info(`Context workspace ${github.workspace}`);
+    const workspace = process.env.GITHUB_WORKSPACE;
+
+    core.info(`WORKSPACE ${workspace}`);
 
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
@@ -46,7 +48,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         image.source = file.split('/image.y')[0];
         core.info(`SOURCE: ${image.source}`);
 
-        const folderPaths = file.split(`${github.workspace}/`);
+        const folderPaths = file.split(`${workspace}/`);
         for (const folderPath of folderPaths) {
             core.info(`FOLDER PATH: ${folderPath}`);
         };
