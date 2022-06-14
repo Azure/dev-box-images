@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Stop script execution when a non-terminating error occurs
 $ErrorActionPreference = "Stop"
 
