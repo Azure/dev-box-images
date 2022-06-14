@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # this is needed to avoid workflow errors in case of an empty matrix
-    if: ${{ fromJSON( needs.prepare.outputs.matrix )[0] }}
+    # if: ${{ fromJSON( needs.prepare.outputs.matrix )[0] }}
 
     strategy:
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
