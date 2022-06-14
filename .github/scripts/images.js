@@ -7,6 +7,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
     const { resourceGroup, galleryName } = process.env;
     const workspace = process.env.GITHUB_WORKSPACE;
 
+    core.startGroup(`Checking for changed files`);
+
     const compare = await github.rest.repos.compareCommitsWithBasehead({
         owner: context.repo.owner,
         repo: context.repo.repo,
@@ -15,6 +17,12 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const changes = compare.data.files.map(f => f.filename);
 
+    core.info(`Found ${changes.length} changed files`);
+    for (const c of changes) {
+        core.info(`- ${c}`);
+    }
+
+    core.endGroup();
 
     const patterns = ['**/image.yml', '**/image.yaml']
     const globber = await glob.create(patterns.join('\n'));
@@ -63,6 +71,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 core.info(`Found existing image ${imageName}`);
                 const img = JSON.parse(imgDefShow.stdout);
                 image.location = img.location;
+
             } else if (imgDefShow.stderr.includes('Code: ResourceNotFound')) {
 
                 core.info(`Image ${imageName} does not exist in gallery ${galleryName}`);
@@ -116,8 +125,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 include.push(image);
 
             } else if (image.changed) {
+
                 core.setFailed(`Image version ${image.version} already exists for ${imageName} but image definition files changed. Please update the version number or delete the image version and try again.`);
+
             } else {
+
                 core.info(`Image version ${image.version} already exists for ${imageName} and image definition is unchanged. Skipping`);
             }
         }
