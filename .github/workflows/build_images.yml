@@ -57,12 +57,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - run: echo "- **name**  ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **gallery**  ${{ matrix.gallery }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **source**  ${{ matrix.source }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **path**  ${{ matrix.path }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **changed**  ${{ matrix.changed }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **location**  ${{ matrix.location }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **name**  ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **gallery**  ${{ matrix.gallery }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **source**  ${{ matrix.source }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **path**  ${{ matrix.path }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **changed**  ${{ matrix.changed }}" >> $GITHUB_STEP_SUMMARY
+      # - run: echo "- **location**  ${{ matrix.location }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Setup Packer
         uses: hashicorp-contrib/setup-packer@v1.0.0
