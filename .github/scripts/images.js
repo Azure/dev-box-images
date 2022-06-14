@@ -89,6 +89,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
             if (imgDefShow.exitCode === 0) {
                 core.info(`Found existing image ${imageName}`);
+                const img = JSON.parse(imgDefShow.stdout);
+                image.location = img.location;
             } else if (imgDefShow.stderr.includes('Code: ResourceNotFound')) {
 
                 core.info(`Image ${imageName} does not exist in gallery ${galleryName}`);
@@ -114,6 +116,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
                 if (imgDefCreate.exitCode === 0) {
                     core.info(`Created image definition for ${imageName}`);
+                    const img = JSON.parse(imgDefCreate.stdout);
+                    image.location = img.location;
                 } else {
                     core.setFailed(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
                 }
@@ -140,7 +144,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgVersions = JSON.parse(imgVersionList.stdout);
 
             if (!imgVersions || imgVersions.length === 0 || !imgVersions.some(v => v.version === image.version)) {
-                core.warning(`Image versions count ${imgVersions.length}`);
+                core.info(`Image versions count ${imgVersions.length}`);
 
                 matrix.include.push(image);
             }
