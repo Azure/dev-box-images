@@ -23,6 +23,9 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
     let include = [];
 
     for (const file of files) {
+
+        core.startGroup(`Processing ${file}`);
+
         core.info(`Found image configuration file at ${file}`);
 
         // Get image name from folder
@@ -118,6 +121,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 core.info(`Image version ${image.version} already exists for ${imageName} and image definition is unchanged. Skipping`);
             }
         }
+
+        core.endGroup();
     };
 
     await core.summary.addTable([
@@ -130,4 +135,5 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
     };
 
     core.setOutput('matrix', JSON.stringify(matrix));
+    core.setOutput('build', matrix.include.length > 0);
 };
