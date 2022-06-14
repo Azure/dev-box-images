@@ -113,7 +113,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '-g', resourceGroup,
                 '-r', galleryName,
                 '-i', imageName,
-                '-v', image.version
+                '-e', image.version
             ];
 
             const imgVersionShow = await exec.getExecOutput('az', imgVersionShowCmd, { silent: true, ignoreReturnCode: true });
