@@ -29,6 +29,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.info(`... ${change}`);
     }
 
+    core.info(`Context workspace ${context.workspace}`);
 
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
@@ -116,14 +117,14 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '--only-show-errors',
                 '-g', resourceGroup,
                 '-r', galleryName,
-                '-i', imageName,
-                '--query', `[?name == '${image.version}'] | [0]`
+                '-i', imageName
             ];
 
             core.info(`Checking if image version exists for ${imageName}`);
             const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { ignoreReturnCode: true });
 
-            core.info(`Compare response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
+            core.info(`imgVersionList response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
+
             // matrix.include.push(image);
 
 
