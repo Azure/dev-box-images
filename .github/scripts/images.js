@@ -37,12 +37,20 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.info('## Payload Commits json ##');
         core.info(JSON.stringify(context.payload.commits, null, 2));
 
+
+        constCompareResponse = await github.rest.repos.compareCommitsWithBasehead({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            basehead: `${context.payload.before}...${context.payload.after}`
+        });
+
+        core.info(`Compare response: ${JSON.stringify(compareResponse, null, 2)}`);
+
         if (!image.version) {
 
             core.warning(`Skipping ${imageName} because of missing version information`);
 
         } else {
-
 
             const imgDefShowCmd = [
                 'sig', 'image-definition', 'show',
@@ -52,21 +60,28 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '-i', imageName
             ];
 
-            const imgDefCreateCmd = [
-                'sig', 'image-definition', 'create',
-                '--only-show-errors',
-                '-g', resourceGroup,
-                '-r', galleryName,
-                '-i', imageName,
-                '-p', image.publisher,
-                '-f', image.offer,
-                '-s', image.sku,
-                '--os-type', image.os,
-                // '--os-state', 'Generalized', (default)
-                '--hyper-v-generation', 'V2',
-                '--features', 'SecurityType=TrustedLaunch'
-            ];
+            const imgDefShow = await exec.getExecOutput('az', imgDefShowCmd, { ignoreReturnCode: true });
 
+            if (sigList.exitCode !== 0 && sigList.stderr.includes('Code: ResourceNotFound')) {
+
+                // const sig = JSON.parse(sigList.stdout);
+                // core.info(sig);
+
+                const imgDefCreateCmd = [
+                    'sig', 'image-definition', 'create',
+                    '--only-show-errors',
+                    '-g', resourceGroup,
+                    '-r', galleryName,
+                    '-i', imageName,
+                    '-p', image.publisher,
+                    '-f', image.offer,
+                    '-s', image.sku,
+                    '--os-type', image.os,
+                    // '--os-state', 'Generalized', (default)
+                    '--hyper-v-generation', 'V2',
+                    '--features', 'SecurityType=TrustedLaunch'
+                ];
+            }
 
             const imgVersionListCmd = [
                 'sig', 'image-version', 'list',
