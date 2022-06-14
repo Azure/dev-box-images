@@ -9,7 +9,7 @@ source "azure-arm" "vm" {
   image_publisher                   = "microsoftwindowsdesktop"
   image_offer                       = "windows-ent-cpc"
   image_sku                         = "win11-21h2-ent-cpc-m365"
-  image_version                     = "PrivatePreview"
+  image_version                     = "latest"
   location                          = var.location
   managed_image_name                = var.image
   managed_image_resource_group_name = var.resourceGroup
