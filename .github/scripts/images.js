@@ -121,10 +121,14 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             core.info(JSON.stringify(imgVersionShow, null, 2));
 
             core.info(`Checking if image version ${image.version} already exists for ${imageName}`);
-            if (imgVersionShow.exitCode !== 0 && imgVersionShow.stderr.includes('Code: ResourceNotFound')) {
+            if (imgVersionShow.exitCode !== 0) {
 
-                core.info(`Image version ${image.version} does not exist for ${imageName}`);
-                include.push(image);
+                if (imgVersionShow.stderr.includes('Code: ResourceNotFound')) {
+                    core.info(`Image version ${image.version} does not exist for ${imageName}`);
+                    include.push(image);
+                } else {
+                    core.setFailed(`Failed to check for existing image version ${image.version} for ${imageName} \n ${imgVersionShow.stderr}`);
+                }
 
             } else if (image.changed) {
 
