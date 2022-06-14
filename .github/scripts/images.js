@@ -139,13 +139,17 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
             const imgVersions = JSON.parse(imgVersionList.stdout);
 
-            for (const imgVersion of imgVersions) {
+            if (!imgVersions || imgVersions.length === 0 || !imgVersions.some(v => v.version === image.version)) {
                 core.warning(`Image version ${imgVersion.name}`);
 
-                if (true) {
-                    matrix.include.push(image);
-                }
+                matrix.include.push(image);
             }
+
+            // for (const imgVersion of imgVersions) {
+
+            //     if (true) {
+            //     }
+            // }
 
 
             // matrix.include.push(image);
