@@ -24,6 +24,9 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const changed = compare.data.files.map(f => f.filename);
 
+    core.info(`Context: ${JSON.stringify(context, null, 2)}`);
+    core.info(`github: ${JSON.stringify(github, null, 2)}`);
+
     core.info('CHANGES');
     for (const change of changed) {
         core.info(`... ${change}`);
