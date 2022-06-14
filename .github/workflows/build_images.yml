@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # this is needed to avoid workflow errors in case of an empty matrix
-    if: ${{ needs.prepare.outputs.build }}
+    if: ${{ needs.prepare.outputs.build == 'true' }}
 
     #   strategy:
     #     matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
