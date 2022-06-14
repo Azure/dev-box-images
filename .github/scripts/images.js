@@ -38,7 +38,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.info(JSON.stringify(context.payload.commits, null, 2));
 
 
-        constCompareResponse = await github.rest.repos.compareCommitsWithBasehead({
+        const compareResponse = await github.rest.repos.compareCommitsWithBasehead({
             owner: context.repo.owner,
             repo: context.repo.repo,
             basehead: `${context.payload.before}...${context.payload.after}`
