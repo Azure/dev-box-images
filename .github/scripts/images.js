@@ -20,7 +20,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         basehead: `${context.payload.before}...${context.payload.after}`
     });
 
-    core.info(`Compare response: ${JSON.stringify(compare, null, 2)}`);
+    // core.info(`Compare response: ${JSON.stringify(compare, null, 2)}`);
 
     const changed = compare.data.files.map(f => f.filename);
 
@@ -35,6 +35,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const image = yaml.load(contents);
 
         image.source = file.split('/image.y')[0];
+        core.info(`SOURCE: ${image.source}`);
         // core.info(image.source);
 
         // core.info(contents);
@@ -112,7 +113,10 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             core.info(`Checking if image version exists for ${imageName}`);
             const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { ignoreReturnCode: true });
 
+            core.info(`Compare response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
             // matrix.include.push(image);
+
+
 
             // if (imgVersionList.exitCode === 0 && imgVersionList.stdout) {
 
