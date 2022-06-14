@@ -1,7 +1,7 @@
 publisher: Contoso
 offer: DevBox
 sku: win11-vscode
-version: 1.0.0
+version: 1.0.1
 os: Windows
 locations:
   - eastus

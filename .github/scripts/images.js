@@ -116,7 +116,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 include.push(image);
 
             } else if (image.changed) {
-                core.setFailed(`Image version ${image.version} already exists for ${imageName} but image definition changed. Please update the version number or delete the image version and try again.`);
+                core.setFailed(`Image version ${image.version} already exists for ${imageName} but image definition files changed. Please update the version number or delete the image version and try again.`);
             } else {
                 core.info(`Image version ${image.version} already exists for ${imageName} and image definition is unchanged. Skipping`);
             }
