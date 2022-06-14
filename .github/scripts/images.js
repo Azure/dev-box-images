@@ -4,6 +4,8 @@ const yaml = require('js-yaml');
 
 module.exports = async ({ github, context, core, glob, exec, }) => {
 
+    const { resourceGroup, galleryName } = process.env;
+
     let matrix = {
         include: []
     };
@@ -45,16 +47,16 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgDefShowCmd = [
                 'sig', 'image-definition', 'show',
                 '--only-show-errors',
-                '-g', '${{ env.resourceGroup }}',
-                '-r', '${{ env.galleryName }}',
+                '-g', resourceGroup,
+                '-r', galleryName,
                 '-i', imageName
             ];
 
             const imgDefCreateCmd = [
                 'sig', 'image-definition', 'create',
                 '--only-show-errors',
-                '-g', '${{ env.resourceGroup }}',
-                '-r', '${{ env.galleryName }}',
+                '-g', resourceGroup,
+                '-r', galleryName,
                 '-i', imageName,
                 '-p', image.publisher,
                 '-f', image.offer,
@@ -69,8 +71,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgVersionListCmd = [
                 'sig', 'image-version', 'list',
                 '--only-show-errors',
-                '-g', '${{ env.resourceGroup }}',
-                '-r', '${{ env.galleryName }}',
+                '-g', resourceGroup,
+                '-r', galleryName,
                 '-i', imageName,
                 '--query', `[?name == '${image.version}'] | [0]`
             ];
