@@ -14,6 +14,17 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
     const globber = await glob.create(patterns.join('\n'));
     const files = await globber.glob();
 
+    const compare = await github.rest.repos.compareCommitsWithBasehead({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        basehead: `${context.payload.before}...${context.payload.after}`
+    });
+
+    core.info(`Compare response: ${JSON.stringify(compare, null, 2)}`);
+
+    const changed = compare.data.files.map(f => f.filename);
+
+
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
 
@@ -24,27 +35,18 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const image = yaml.load(contents);
 
         image.source = file.split('/image.y')[0];
-        core.info(image.source);
+        // core.info(image.source);
 
-        core.info(contents);
+        // core.info(contents);
 
-        core.info('## Payload ##');
-        core.info(context.payload);
+        // core.info('## Payload ##');
+        // core.info(context.payload);
 
-        core.info('## Payload json ##');
-        core.info(JSON.stringify(context.payload, null, 2));
+        // core.info('## Payload json ##');
+        // core.info(JSON.stringify(context.payload, null, 2));
 
-        core.info('## Payload Commits json ##');
-        core.info(JSON.stringify(context.payload.commits, null, 2));
-
-
-        const compareResponse = await github.rest.repos.compareCommitsWithBasehead({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            basehead: `${context.payload.before}...${context.payload.after}`
-        });
-
-        core.info(`Compare response: ${JSON.stringify(compareResponse, null, 2)}`);
+        // core.info('## Payload Commits json ##');
+        // core.info(JSON.stringify(context.payload.commits, null, 2));
 
         if (!image.version) {
 
@@ -60,12 +62,14 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '-i', imageName
             ];
 
+            core.info(`Checking if image definition exists for ${imageName}`);
             const imgDefShow = await exec.getExecOutput('az', imgDefShowCmd, { ignoreReturnCode: true });
 
-            if (sigList.exitCode !== 0 && sigList.stderr.includes('Code: ResourceNotFound')) {
+            if (imgDefShow.exitCode === 0) {
+                core.info(`Found existing image ${imageName}`);
+            } else if (imgDefShow.stderr.includes('Code: ResourceNotFound')) {
 
-                // const sig = JSON.parse(sigList.stdout);
-                // core.info(sig);
+                core.info(`Image ${imageName} does not exist in gallery ${galleryName}`);
 
                 const imgDefCreateCmd = [
                     'sig', 'image-definition', 'create',
@@ -81,6 +85,19 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                     '--hyper-v-generation', 'V2',
                     '--features', 'SecurityType=TrustedLaunch'
                 ];
+
+                core.info(`Creating new image definition for ${imageName}`);
+
+                const imgDefCreate = await exec.getExecOutput('az', imgDefCreateCmd, { ignoreReturnCode: true });
+
+                if (imgDefCreate.exitCode === 0) {
+                    core.info(`Created image definition for ${imageName}`);
+                } else {
+                    core.setfailure(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
+                }
+
+            } else {
+                core.setfailure(`Failed to get image definition for ${imageName} \n ${imgDefShow.stderr}`);
             }
 
             const imgVersionListCmd = [
@@ -92,20 +109,21 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '--query', `[?name == '${image.version}'] | [0]`
             ];
 
-            const sigList = await exec.getExecOutput('az', imgVersionListCmd, { ignoreReturnCode: true });
+            core.info(`Checking if image version exists for ${imageName}`);
+            const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { ignoreReturnCode: true });
 
-            matrix.include.push(image);
+            // matrix.include.push(image);
 
-            if (sigList.exitCode === 0 && sigList.stdout) {
+            // if (imgVersionList.exitCode === 0 && imgVersionList.stdout) {
 
-                const sig = JSON.parse(sigList.stdout);
-                core.info(sig);
+            //     const sig = JSON.parse(imgVersionList.stdout);
+            //     core.info(sig);
 
-            } else {
+            // } else {
 
-                core.warning(`Could not find an existing image named ${imageName}`);
+            //     core.warning(`Could not find an existing image named ${imageName}`);
 
-            }
+            // }
         }
     };
 
