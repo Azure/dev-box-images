@@ -41,6 +41,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
         image.source = file.split('/image.y')[0];
         core.info(`SOURCE: ${image.source}`);
+
+        const folderPaths = file.split(`${context.workspace}/`);
+        for (const folderPath of folderPaths) {
+            core.info(`FOLDER PATH: ${folderPath}`);
+        };
         // core.info(image.source);
 
         // core.info(contents);
