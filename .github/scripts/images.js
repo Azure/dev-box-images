@@ -125,10 +125,15 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.endGroup();
     };
 
-    await core.summary.addTable([
-        [{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }],
-        include.map(i => [i.name, i.publisher, i.offer, i.sku, i.os, i.version]),
-    ]).write();
+    if (include.length > 0) {
+
+        await core.summary.addTable([
+            [{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }],
+            include.map(i => [i.name, i.publisher, i.offer, i.sku, i.os, i.version]),
+        ]).write();
+    } else {
+        await core.summary.addHeading('No images were built', 4).write();
+    }
 
     const matrix = {
         include: include
