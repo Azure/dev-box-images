@@ -118,6 +118,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
             const imgVersionShow = await exec.getExecOutput('az', imgVersionShowCmd, { silent: true, ignoreReturnCode: true });
 
+            core.info(JSON.stringify(imgVersionShow, null, 2));
+
             core.info(`Checking if image version ${image.version} already exists for ${imageName}`);
             if (imgVersionShow.exitCode !== 0 && imgVersionShow.stderr.includes('Code: ResourceNotFound')) {
 
@@ -137,8 +139,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         core.endGroup();
     };
 
-    if (include.length > 0) {
 
+    if (include.length > 0) {
         await core.summary.addTable([
             [{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }],
             include.map(i => [i.name, i.publisher, i.offer, i.sku, i.os, i.version]),
