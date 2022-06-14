@@ -64,72 +64,44 @@ jobs:
       - run: echo "- **changed**  ${{ matrix.changed }}" >> $GITHUB_STEP_SUMMARY
       - run: echo "- **location**  ${{ matrix.location }}" >> $GITHUB_STEP_SUMMARY
 
-  #     - name: Setup Packer
-  #       uses: hashicorp-contrib/setup-packer@v1.0.0
+      - name: Setup Packer
+        uses: hashicorp-contrib/setup-packer@v1.0.0
 
-  #     - name: Build Image
-  #       timeout-minutes: 60
-  #       run: |
+      - name: Build Image
+        timeout-minutes: 60
+        working-directory: ${{ matrix.source }}
+        run: |
 
-  #         ${{ matrix.imagePath }}
+          # run packer to build the image
+          packer build -force \
+            -var "image=${{ matrix.name }}" \
+            -var "version=${{ matrix.version }}" \
+            -var "location=${{ matrix.location }}" \
+            -var "subscription=${{ matrix.subscription }}" \
+            -var "resourceGroup=${{ matrix.resourceGroup }}" \
+            -var "galleryName=${{ matrix.gallery }}" \
+            -var "branch=${{ github.ref }}" \
+            -var "commit=${{ github.sha }}" \
+            . # <== run in the current folder
 
-  #         # run packer to build the image
-  #         packer build -force \
-  #           -var "image=${{ matrix.name }}" \
-  #           -var "version=${{ matrix.version }}" \
-  #           -var "location=$IMAGELOCATION" \
-  #           -var "subscription=$(az account show --query 'id' -o tsv)" \
-  #           -var "resourceGroup=${{ env.resourceGroup }}" \
-  #           -var "galleryName=${{ env.galleryName }}" \
-  #           -var "branch=${{ github.ref }}" \
-  #           -var "commit=${{ github.sha }}" \
-  #           . # <== run in the current folder
+          exit $?
 
-  #         exit $?
+  cleanup:
+    needs: build
+    runs-on: ubuntu-latest
 
-  #         IMAGEFOLDER="$(dirname ${{ matrix.imagePath }})"
-  #         IMAGENAME="$(basename "$IMAGEFOLDER")"
-  #         IMAGEVERSION="$(cat ${{ matrix.imagePath }} | jq --raw-output '.version')"
-  #         IMAGELOCATION="$(az sig show --resource-group ${{ env.resourceGroup }} --gallery-name ${{ env.galleryName }} --query location -o tsv)"
+    # ensure we always cleanup
+    if: always()
 
-  #         echo "IMAGEFOLDER:     $IMAGEFOLDER"
-  #         echo "IMAGENAME:       $IMAGENAME"
-  #         echo "IMAGEVERSION:    $IMAGEVERSION"
-  #         echo "IMAGEDEFINITION: $(jq . ${{ matrix.imagePath }})"
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #         # switch context to image folder
-  #         cd "$(echo $IMAGEFOLDER | tr -d '\r')"; echo "Executing $(packer version) in $PWD"
+      - name: Delete Artifacts
+        run: |
 
-  #         # run packer to build the image
-  #         packer build -force \
-  #           -var "image=$IMAGENAME" \
-  #           -var "version=$IMAGEVERSION" \
-  #           -var "location=$IMAGELOCATION" \
-  #           -var "subscription=$(az account show --query 'id' -o tsv)" \
-  #           -var "resourceGroup=${{ env.resourceGroup }}" \
-  #           -var "galleryName=${{ env.galleryName }}" \
-  #           -var "branch=${{ github.ref }}" \
-  #           -var "commit=${{ github.sha }}" \
-  #           . # <== run in the current folder
-
-  #         exit $?
-
-  # cleanup:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-
-  #   # ensure we always cleanup
-  #   if: always()
-
-  #   steps:
-  #     - name: Login to Azure
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-  #     - name: Delete Artifacts
-  #       run: |
-
-  #         while read RESOURCEGROUP; do
-  #           az group delete --resource-group $RESOURCEGROUP --no-wait --yes
-  #         done < <(az group list --query "[?starts_with(@.name, 'pkr-Resource-Group-')].name" -o tsv)
+          while read RESOURCEGROUP; do
+            az group delete --resource-group $RESOURCEGROUP --no-wait --yes
+          done < <(az group list --query "[?starts_with(@.name, 'pkr-Resource-Group-')].name" -o tsv)
