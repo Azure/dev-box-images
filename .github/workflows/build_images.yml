@@ -77,7 +77,7 @@ jobs:
             -var "image=${{ matrix.name }}" \
             -var "version=${{ matrix.version }}" \
             -var "location=${{ matrix.location }}" \
-            -var "subscription=${{ matrix.subscription }}" \
+            -var "subscription=$(az account show --query 'id' -o tsv)" \
             -var "resourceGroup=${{ matrix.resourceGroup }}" \
             -var "galleryName=${{ matrix.gallery }}" \
             -var "branch=${{ github.ref }}" \

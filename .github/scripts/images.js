@@ -91,7 +91,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             if (imgDefShow.exitCode === 0) {
                 core.info(`Found existing image ${imageName}`);
                 const img = JSON.parse(imgDefShow.stdout);
-                image.id = img.id;
+                // image.id = img.id;
                 image.location = img.location;
             } else if (imgDefShow.stderr.includes('Code: ResourceNotFound')) {
 
@@ -119,7 +119,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 if (imgDefCreate.exitCode === 0) {
                     core.info(`Created image definition for ${imageName}`);
                     const img = JSON.parse(imgDefCreate.stdout);
-                    image.id = img.id;
+                    // image.id = img.id;
                     image.location = img.location;
                 } else {
                     core.setFailed(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
@@ -131,7 +131,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
             // check it the image definition changed
 
-            image.subscription = image.id.split('/')[2];
+            // image.subscription = image.id.split('/')[2];
 
             const imgVersionListCmd = [
                 'sig', 'image-version', 'list',
