@@ -41,7 +41,8 @@ build {
       "choco install postman --confirm",
       # "choco install microsoft-windows-terminal --confirm",
       "choco install googlechrome --confirm",
-      "choco install firefox --confirm"
+      "choco install firefox --confirm",
+      "choco install github-desktop --confirm"
     ]
   }
 
