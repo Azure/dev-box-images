@@ -32,12 +32,13 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     for (const file of files) {
 
-        core.startGroup(`Processing ${file}`);
+        const imageName = file.split('/').slice(-2)[0];
 
-        core.info(`Found image configuration file at ${file}`);
+        core.startGroup(`Processing image config ${imageName} : ${file}`);
+
+        // core.info(`Found image configuration file at ${file}`);
 
         // Get image name from folder
-        const imageName = file.split('/').slice(-2)[0];
 
         const contents = await fs.readFile(file, 'utf8');
         const image = yaml.load(contents);
@@ -68,6 +69,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgDefShow = await exec.getExecOutput('az', imgDefShowCmd, { silent: true, ignoreReturnCode: true });
 
             if (imgDefShow.exitCode === 0) {
+
                 core.info(`Found existing image ${imageName}`);
                 const img = JSON.parse(imgDefShow.stdout);
                 image.location = img.location;
@@ -96,9 +98,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 const imgDefCreate = await exec.getExecOutput('az', imgDefCreateCmd, { silent: true, ignoreReturnCode: true });
 
                 if (imgDefCreate.exitCode === 0) {
+
                     core.info(`Created image definition for ${imageName}`);
                     const img = JSON.parse(imgDefCreate.stdout);
                     image.location = img.location;
+
                 } else {
                     core.setFailed(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
                 }
@@ -116,26 +120,21 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 '-e', image.version
             ];
 
+            core.info(`Checking if image version ${image.version} already exists for ${imageName}`);
             const imgVersionShow = await exec.getExecOutput('az', imgVersionShowCmd, { silent: true, ignoreReturnCode: true });
 
-            core.info(JSON.stringify(imgVersionShow, null, 2));
-
-            core.info(`Checking if image version ${image.version} already exists for ${imageName}`);
             if (imgVersionShow.exitCode !== 0) {
 
                 if (imgVersionShow.stderr.includes('Code: ResourceNotFound')) {
-                    core.info(`Image version ${image.version} does not exist for ${imageName}`);
+                    core.info(`Image version ${image.version} does not exist for ${imageName}. Creating`);
                     include.push(image);
                 } else {
                     core.setFailed(`Failed to check for existing image version ${image.version} for ${imageName} \n ${imgVersionShow.stderr}`);
                 }
 
             } else if (image.changed) {
-
                 core.setFailed(`Image version ${image.version} already exists for ${imageName} but image definition files changed. Please update the version number or delete the image version and try again.`);
-
             } else {
-
                 core.info(`Image version ${image.version} already exists for ${imageName} and image definition is unchanged. Skipping`);
             }
         }
@@ -145,10 +144,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
 
     if (include.length > 0) {
-        await core.summary.addTable([
-            [{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }],
-            include.map(i => [i.name, i.publisher, i.offer, i.sku, i.os, i.version]),
-        ]).write();
+        const rows = [[{ data: 'Name', header: true }, { data: 'Publisher', header: true }, { data: 'Offer', header: true }, { data: 'SKU', header: true }, { data: 'OS', header: true }, { data: 'Version', header: true }]];
+        for (const i of include) {
+            rows.push([i.name, i.publisher, i.offer, i.sku, i.os, i.version]);
+        }
+        await core.summary.addTable(rows).write();
     } else {
         await core.summary.addHeading('No images were built', 4).write();
     }
