@@ -24,6 +24,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const changed = compare.data.files.map(f => f.filename);
 
+    core.info('CHANGES');
+    for (const change of changed) {
+        core.info(`... ${change}`);
+    }
+
 
     for (const file of files) {
         core.info(`Found image configuration file at ${file}`);
@@ -94,11 +99,11 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 if (imgDefCreate.exitCode === 0) {
                     core.info(`Created image definition for ${imageName}`);
                 } else {
-                    core.setfailure(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
+                    core.setFailed(`Failed to create image definition for ${imageName} \n ${imgDefCreate.stderr}`);
                 }
 
             } else {
-                core.setfailure(`Failed to get image definition for ${imageName} \n ${imgDefShow.stderr}`);
+                core.setFailed(`Failed to get image definition for ${imageName} \n ${imgDefShow.stderr}`);
             }
 
             const imgVersionListCmd = [
