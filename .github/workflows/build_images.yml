@@ -36,60 +36,68 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const script = require('./github/scripts/images.js');
+            await script({github, context, core, glob, exec});
 
-            const fs = require('fs/promises');
-            const yaml = require('js-yaml');
+      # - name: Get Image Definitions
+      #   id: packer-definitions
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
 
-            let matrix = {
-              include: []
-            };
+      #       const fs = require('fs/promises');
+      #       const yaml = require('js-yaml');
 
-            const patterns = ['**/image.yml', '**/image.yaml']
-            const globber = await glob.create(patterns.join('\n'));
-            const files = await globber.glob();
+      #       let matrix = {
+      #         include: []
+      #       };
 
-            for (const file of files) {
-              core.info(`Found image configuration file at ${file}`);
+      #       const patterns = ['**/image.yml', '**/image.yaml']
+      #       const globber = await glob.create(patterns.join('\n'));
+      #       const files = await globber.glob();
 
-              // Get image name from folder
-              const imageName = file.split('/').slice(-2)[0];
+      #       for (const file of files) {
+      #         core.info(`Found image configuration file at ${file}`);
 
-              const contents = await fs.readFile(file, 'utf8');
-              const image = yaml.load(contents);
+      #         // Get image name from folder
+      #         const imageName = file.split('/').slice(-2)[0];
 
-              image.source = file.split('/image.y')[0];
-              core.info(image.source);
+      #         const contents = await fs.readFile(file, 'utf8');
+      #         const image = yaml.load(contents);
 
-              core.info(contents);
+      #         image.source = file.split('/image.y')[0];
+      #         core.info(image.source);
 
-              if (!image.version) {
+      #         core.info(contents);
 
-                core.warning(`Skipping ${imageName} because of missing version information`);
+      #         if (!image.version) {
 
-              } else {
+      #           core.warning(`Skipping ${imageName} because of missing version information`);
 
-                const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
-                // core.info(sigList.exitCode);
-                // core.info(sigList.stdout);
+      #         } else {
 
-                matrix.include.push(image);
+      #           const sigList = await exec.getExecOutput('az', ['sig', 'image-version', 'list', '-i', imageName, '-r', '${{ env.galleryName }}', '-g', '${{ env.resourceGroup }}', '--only-show-errors', '--query', `[?name == '${image.version}'] | [0]`], { ignoreReturnCode: true });
+      #           // core.info(sigList.exitCode);
+      #           // core.info(sigList.stdout);
 
-                if (sigList.exitCode === 0 && sigList.stdout) {
+      #           matrix.include.push(image);
 
-                  const sig = JSON.parse(sigList.stdout);
-                  core.info(sig);
+      #           if (sigList.exitCode === 0 && sigList.stdout) {
 
-                } else {
+      #             const sig = JSON.parse(sigList.stdout);
+      #             core.info(sig);
 
-                  core.warning(`Did not find existing image ${imageName}`);
+      #           } else {
 
-                }
-              }
-            };
+      #             core.warning(`Did not find existing image ${imageName}`);
 
-            core.info(JSON.stringify(matrix.include));
+      #           }
+      #         }
+      #       };
 
-            core.setOutput('matrix', JSON.stringify(matrix));
+      #       core.info(JSON.stringify(matrix));
+
+      #       core.setOutput('matrix', JSON.stringify(matrix));
 
   #     - name: Detect Packer Definitions
   #       id: packer-definitions
