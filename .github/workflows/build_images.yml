@@ -18,8 +18,8 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
 
-    # outputs:
-    #     matrix: ${{ steps.packer-definitions.outputs.matrix }}
+    outputs:
+      matrix: ${{ steps.packer-definitions.outputs.matrix }}
 
     steps:
       - uses: actions/checkout@v2
@@ -149,6 +149,30 @@ jobs:
   #             echo "Images to build:"; printf '%s\n' "${IMAGES[@]}"
   #             echo "::set-output name=matrix::$(printf '%s\n' "${IMAGES[@]}" | jq -R -s -c 'split("\n")[:-1]')"
   #         fi
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    # this is needed to avoid workflow errors in case of an empty matrix
+    if: ${{ fromJSON( needs.prepare.outputs.matrix )[0] }}
+
+    strategy:
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: echo "- **name**  ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **gallery**  ${{ matrix.gallery }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **source**  ${{ matrix.source }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **path**  ${{ matrix.path }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **changed**  ${{ matrix.changed }}" >> $GITHUB_STEP_SUMMARY
 
   # build:
   #   needs: prepare

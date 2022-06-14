@@ -45,16 +45,19 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const contents = await fs.readFile(file, 'utf8');
         const image = yaml.load(contents);
 
-        core.info('  ');
+
+        image.gallery = galleryName;
+        image.name = imageName;
+
 
         image.source = file.split('/image.y')[0];
-        core.info(`SOURCE: ${image.source}`);
-
         image.path = image.source.split(`${workspace}/`)[1];
-        core.info(`PATH: ${image.path}`);
+        image.changed = changes.some(change => change.startsWith(image.path));
 
-        const changed = changes.some(change => change.startsWith(image.path));
-        core.info(`CHANGED: ${changed}`);
+        // core.info('  ');
+        // core.info(`SOURCE: ${image.source}`);
+        // core.info(`PATH: ${image.path}`);
+        // core.info(`CHANGED: ${image.changed}`);
 
         // core.info(image.source);
 
@@ -70,9 +73,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         // core.info(JSON.stringify(context.payload.commits, null, 2));
 
         if (!image.version) {
-
             core.warning(`Skipping ${imageName} because of missing version information`);
-
         } else {
 
             const imgDefShowCmd = [
@@ -121,6 +122,8 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                 core.setFailed(`Failed to get image definition for ${imageName} \n ${imgDefShow.stderr}`);
             }
 
+            // check it the image definition changed
+
             const imgVersionListCmd = [
                 'sig', 'image-version', 'list',
                 '--only-show-errors',
@@ -133,6 +136,17 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { silent: true, ignoreReturnCode: true });
 
             core.info(`imgVersionList response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
+
+            const imgVersions = JSON.parse(imgVersionList.stdout);
+
+            for (const imgVersion of imgVersions) {
+                core.warning(`Image version ${imgVersion.name}`);
+
+                if (true) {
+                    matrix.include.push(image);
+                }
+            }
+
 
             // matrix.include.push(image);
 
