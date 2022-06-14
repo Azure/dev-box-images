@@ -84,7 +84,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             ];
 
             core.info(`Checking if image definition exists for ${imageName}`);
-            const imgDefShow = await exec.getExecOutput('az', imgDefShowCmd, { ignoreReturnCode: true });
+            const imgDefShow = await exec.getExecOutput('az', imgDefShowCmd, { silent: true, ignoreReturnCode: true });
 
             if (imgDefShow.exitCode === 0) {
                 core.info(`Found existing image ${imageName}`);
@@ -109,7 +109,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
 
                 core.info(`Creating new image definition for ${imageName}`);
 
-                const imgDefCreate = await exec.getExecOutput('az', imgDefCreateCmd, { ignoreReturnCode: true });
+                const imgDefCreate = await exec.getExecOutput('az', imgDefCreateCmd, { silent: true, ignoreReturnCode: true });
 
                 if (imgDefCreate.exitCode === 0) {
                     core.info(`Created image definition for ${imageName}`);
@@ -130,7 +130,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
             ];
 
             core.info(`Checking if image version exists for ${imageName}`);
-            const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { ignoreReturnCode: true });
+            const imgVersionList = await exec.getExecOutput('az', imgVersionListCmd, { silent: true, ignoreReturnCode: true });
 
             core.info(`imgVersionList response: ${JSON.stringify(imgVersionList.stdout, null, 2)}`);
 
