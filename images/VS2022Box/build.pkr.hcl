@@ -41,8 +41,8 @@ build {
       "choco install postman --confirm",
       # "choco install microsoft-windows-terminal --confirm",
       "choco install googlechrome --confirm",
-      "choco install firefox --confirm",
-      "choco install github-desktop --confirm"
+      "choco install firefox --confirm"
+      // "choco install github-desktop --confirm"
     ]
   }
 
@@ -50,6 +50,12 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     script            = "../../scripts/Install-DotNet.ps1"
+  }
+
+  provisioner "powershell" {
+    elevated_user     = build.User
+    elevated_password = build.Password
+    script            = "../../scripts/Install-GitHubDesktop.ps1"
   }
 
   provisioner "powershell" {
