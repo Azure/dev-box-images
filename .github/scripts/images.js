@@ -89,6 +89,7 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
                     '-s', image.sku,
                     '--os-type', image.os,
                     // '--os-state', 'Generalized', (default)
+                    '--description', image.description,
                     '--hyper-v-generation', 'V2',
                     '--features', 'SecurityType=TrustedLaunch'
                 ];
