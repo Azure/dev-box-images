@@ -3,7 +3,6 @@ name: Build Images
 env:
   galleryName: Contoso
   resourceGroup: Compute-Gallery
-  tempNameBase: '${{ github.action }}_${{ github.run_number }}_'
 
 concurrency: ${{ github.ref }}
 
@@ -72,7 +71,7 @@ jobs:
             -var "location=${{ matrix.location }}" \
             -var "subscription=$(az account show --query 'id' -o tsv)" \
             -var "resourceGroup=${{ matrix.resourceGroup }}" \
-            -var "tempResourceGroup=${{ matrix.gallery }}_${{ matrix.name }}_${{ github.run_number }}" \
+            -var "tempResourceGroup=${{ matrix.gallery }}-${{ matrix.name }}-${{ github.run_number }}" \
             -var "galleryName=${{ matrix.gallery }}" \
             -var 'replicaLocations=${{ matrix.locations }}' \
             -var "branch=${{ github.ref }}" \
@@ -100,4 +99,4 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Delete Artifacts
-        run: az group delete -g "${{ matrix.gallery }}_${{ matrix.name }}_${{ github.run_number }}" -y --no-wait
+        run: az group delete -g "${{ matrix.gallery }}-${{ matrix.name }}-${{ github.run_number }}" -y --no-wait || true
