@@ -1,3 +1,4 @@
+# https://www.packer.io/plugins/builders/azure
 source "azure-arm" "vm" {
   azure_tags = {
     branch = var.branch
@@ -5,7 +6,6 @@ source "azure-arm" "vm" {
     commit = var.commit
   }
   communicator                      = "winrm"
-  # https://www.packer.io/plugins/builders/azure/arm
   image_publisher                   = "microsoftwindowsdesktop"
   image_offer                       = "windows-ent-cpc"
   image_sku                         = "win11-21h2-ent-cpc-m365"

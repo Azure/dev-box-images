@@ -1,6 +1,6 @@
 build {
 
-  # https://www.packer.io/plugins/builders/azure
+  # use source defined in the source.pkr.hcl file
   sources = ["source.azure-arm.vm"]
 
   provisioner "powershell" {
@@ -39,10 +39,8 @@ build {
     elevated_password = build.Password
     inline            = [
       "choco install postman --confirm",
-      # "choco install microsoft-windows-terminal --confirm",
       "choco install googlechrome --confirm",
       "choco install firefox --confirm"
-      // "choco install github-desktop --confirm"
     ]
   }
 
@@ -51,29 +49,11 @@ build {
     elevated_password = build.Password
     scripts           = [
       "../../scripts/Install-DotNet.ps1",
+      "../../scripts/Install-Python.ps1",
       "../../scripts/Install-GitHubDesktop.ps1",
       "../../scripts/Install-VSCode.ps1"
     ]
   }
-
-
-  // provisioner "powershell" {
-  //   elevated_user     = build.User
-  //   elevated_password = build.Password
-  //   script            = "../../scripts/Install-DotNet.ps1"
-  // }
-
-  // provisioner "powershell" {
-  //   elevated_user     = build.User
-  //   elevated_password = build.Password
-  //   script            = "../../scripts/Install-GitHubDesktop.ps1"
-  // }
-
-  // provisioner "powershell" {
-  //   elevated_user     = build.User
-  //   elevated_password = build.Password
-  //   script            = "../../scripts/Install-VSCode.ps1"
-  // }
 
   provisioner "powershell" {
     scripts = [
@@ -81,14 +61,6 @@ build {
       "../../scripts/Generalize-VM.ps1"
     ]
   }
-
-  // provisioner "powershell" {
-  //   script            = "../../scripts/Disable-AutoLogon.ps1"
-  // }
-
-  // provisioner "powershell" {
-  //   script            = "../../scripts/Generalize-VM.ps1"
-  // }
 
   post-processor "shell-local" {
     inline  = [ "az image delete -g ${var.resourceGroup} -n ${var.image}" ]
