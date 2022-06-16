@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const yaml = require('js-yaml');
 
-
 module.exports = async ({ github, context, core, glob, exec, }) => {
 
     const { resourceGroup, galleryName } = process.env;
@@ -35,10 +34,6 @@ module.exports = async ({ github, context, core, glob, exec, }) => {
         const imageName = file.split('/').slice(-2)[0];
 
         core.startGroup(`Processing image config ${imageName} : ${file}`);
-
-        // core.info(`Found image configuration file at ${file}`);
-
-        // Get image name from folder
 
         const contents = await fs.readFile(file, 'utf8');
         const image = yaml.load(contents);

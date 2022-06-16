@@ -49,31 +49,48 @@ build {
   provisioner "powershell" {
     elevated_user     = build.User
     elevated_password = build.Password
-    script            = "../../scripts/Install-DotNet.ps1"
+    scripts           = [
+      "../../scripts/Install-DotNet.ps1",
+      "../../scripts/Install-GitHubDesktop.ps1",
+      "../../scripts/Install-VSCode.ps1"
+    ]
   }
 
-  provisioner "powershell" {
-    elevated_user     = build.User
-    elevated_password = build.Password
-    script            = "../../scripts/Install-GitHubDesktop.ps1"
-  }
+
+  // provisioner "powershell" {
+  //   elevated_user     = build.User
+  //   elevated_password = build.Password
+  //   script            = "../../scripts/Install-DotNet.ps1"
+  // }
+
+  // provisioner "powershell" {
+  //   elevated_user     = build.User
+  //   elevated_password = build.Password
+  //   script            = "../../scripts/Install-GitHubDesktop.ps1"
+  // }
+
+  // provisioner "powershell" {
+  //   elevated_user     = build.User
+  //   elevated_password = build.Password
+  //   script            = "../../scripts/Install-VSCode.ps1"
+  // }
 
   provisioner "powershell" {
-    elevated_user     = build.User
-    elevated_password = build.Password
-    script            = "../../scripts/Install-VSCode.ps1"
+    scripts = [
+      "../../scripts/Disable-AutoLogon.ps1",
+      "../../scripts/Generalize-VM.ps1"
+    ]
   }
 
-  provisioner "powershell" {
-    script            = "../../scripts/Disable-AutoLogon.ps1"
-  }
+  // provisioner "powershell" {
+  //   script            = "../../scripts/Disable-AutoLogon.ps1"
+  // }
 
-  provisioner "powershell" {
-    script            = "../../scripts/Generalize-VM.ps1"
-  }
+  // provisioner "powershell" {
+  //   script            = "../../scripts/Generalize-VM.ps1"
+  // }
 
   post-processor "shell-local" {
-    inline            = [
-      "az image delete -g ${var.resourceGroup} -n ${var.image}" ]
+    inline  = [ "az image delete -g ${var.resourceGroup} -n ${var.image}" ]
   }
 }
