@@ -4,15 +4,14 @@ env:
   resourceGroup: Compute-Gallery
   galleryName: Contoso
 
-# defaults:
-#   run:
-#     shell: bash
-
 concurrency: ${{ github.ref }}
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'images/**'
+      - 'scripts/**'
 
 jobs:
   prepare:
@@ -51,7 +50,6 @@ jobs:
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
     steps:
-      - run: ${{ needs.prepare.outputs.build }}
       - uses: actions/checkout@v2
 
       - name: Login to Azure
@@ -63,7 +61,6 @@ jobs:
         uses: hashicorp-contrib/setup-packer@v1.0.0
 
       - name: Build Image
-        # timeout-minutes: 60
         working-directory: ${{ matrix.source }}
         run: |
 
