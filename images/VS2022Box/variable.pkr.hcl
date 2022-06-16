@@ -37,6 +37,12 @@ variable "replicaLocations" {
 variable "resourceGroup" {
   type    = string
   default = ""
+  description = "The resource group to use for the managed image"
+}
+
+variable "tempResourceGroup" {
+  type    = string
+  default = ""
   description = "The resource group to use for the build"
 }
 

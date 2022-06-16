@@ -1,4 +1,4 @@
-# https://www.packer.io/plugins/builders/azure
+# https://www.packer.io/plugins/builders/azure/arm
 source "azure-arm" "vm" {
   azure_tags = {
     branch = var.branch
@@ -14,6 +14,7 @@ source "azure-arm" "vm" {
   managed_image_name                = var.image
   managed_image_resource_group_name = var.resourceGroup
   use_azure_cli_auth                = true
+  temp_resource_group_name          = var.tempResourceGroup
   async_resourcegroup_delete        = true
   os_type                           = "Windows"
   vm_size                           = "Standard_D8s_v3"
