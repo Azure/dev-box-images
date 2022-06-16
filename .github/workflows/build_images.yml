@@ -72,7 +72,7 @@ jobs:
             -var "location=${{ matrix.location }}" \
             -var "subscription=$(az account show --query 'id' -o tsv)" \
             -var "resourceGroup=${{ matrix.resourceGroup }}" \
-            -var "tempResourceGroup=${{env.tempNameBase}}${{ matrix.name }}" \
+            -var "tempResourceGroup=${{ matrix.gallery }}_${{ matrix.name }}_${{ github.run_number }}" \
             -var "galleryName=${{ matrix.gallery }}" \
             -var 'replicaLocations=${{ matrix.locations }}' \
             -var "branch=${{ github.ref }}" \
@@ -100,4 +100,4 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Delete Artifacts
-        run: az group delete -g "${{env.tempNameBase}}${{ matrix.name }}" -y --no-wait
+        run: az group delete -g "${{ matrix.gallery }}_${{ matrix.name }}_${{ github.run_number }}" -y --no-wait
