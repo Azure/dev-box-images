@@ -42,11 +42,13 @@ jobs:
   build:
     needs: prepare
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     # this is needed to avoid workflow errors in case of an empty matrix
     if: ${{ needs.prepare.outputs.build == 'true' }}
 
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
     steps:
