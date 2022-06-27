@@ -52,6 +52,7 @@ build {
       "../../scripts/Install-Python.ps1",
       "../../scripts/Install-GitHubDesktop.ps1",
       "../../scripts/Install-VSCode.ps1",
+      "../../scripts/Install-AzureCLI.ps1",
       "../../scripts/Install-VS2022.ps1"
     ]
   }
