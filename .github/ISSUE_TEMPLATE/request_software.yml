@@ -1,0 +1,56 @@
+name: Software Request
+description: Request pre-installed software
+title: '[Software]: '
+labels: ['software']
+assignees:
+  - colbylwilliams
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this software request!
+  - type: input
+    id: software-name
+    attributes:
+      label: Software Name
+      description: Name of the requested software
+    validations:
+      required: true
+  - type: input
+    id: software-version
+    attributes:
+      label: Software Version
+      description: Version of the requested software
+      placeholder: latest
+    validations:
+      required: true
+  - type: input
+    id: software-url
+    attributes:
+      label: Software URL
+      description: URL where the requested software can be downloaded
+    validations:
+      required: true
+  - type: checkboxes
+    id: software-license
+    attributes:
+      label: Software License
+      description: Does the requested software require a license?
+      options:
+        - label: License required
+          required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional details?
+      description: What else should we know when evaluating the software?
+    validations:
+      required: false
+  - type: dropdown
+    id: image
+    attributes:
+      label: What Image would you like the software installed on?
+      multiple: true
+      options:
+        - VS2022Box
+        - VSCodeBox

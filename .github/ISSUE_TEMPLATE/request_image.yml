@@ -1,0 +1,49 @@
+name: Image Request
+description: Request a new image
+title: '[Image]: '
+labels: ['image']
+assignees:
+  - colbylwilliams
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this image request!
+  - type: input
+    id: image-base
+    attributes:
+      label: Image base OS
+      description: Name of the base OS for the requested image
+      placeholder: ex. Windows 11 Enterprise
+    validations:
+      required: true
+  - type: textarea
+    id: image-software
+    attributes:
+      label: Pre-installed software
+      description: List of pre-installed software to include in the image (with URL and version)
+    validations:
+      required: true
+  - type: checkboxes
+    id: software-licenses
+    attributes:
+      label: Software License
+      description: Does any of the requested software require a license?
+      options:
+        - label: License required
+          required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional details?
+      description: What else should we know when evaluating the image request?
+    validations:
+      required: false
+  - type: dropdown
+    id: image
+    attributes:
+      label: If the image should be based on another image please select
+      multiple: false
+      options:
+        - VS2022Box
+        - VSCodeBox

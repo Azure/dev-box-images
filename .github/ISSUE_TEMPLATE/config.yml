@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerabilities
+    url: https://msrc.microsoft.com/create-report
+    about: Please report security vulnerabilities here or email secure@microsoft.com.
+  - name: Security Bug Bounty
+    url: https://microsoft.com/msrc/bounty
+    about: Learn more about Microsoft Bug Bounty Program here.

@@ -51,8 +51,8 @@ build {
       "../../scripts/Install-DotNet.ps1",
       "../../scripts/Install-Python.ps1",
       "../../scripts/Install-GitHubDesktop.ps1",
-      "../../scripts/Install-VSCode.ps1",
-      "../../scripts/Install-AzureCLI.ps1"
+      "../../scripts/Install-AzureCLI.ps1",
+      "../../scripts/Install-VSCode.ps1"
     ]
   }
 
