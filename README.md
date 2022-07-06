@@ -38,6 +38,14 @@ To get started:
 2. In your fork create a new [repository secret](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-a-repository) named `AZURE_CREDENTIALS` with a value that contains credentials for a service principal with appropriate permissions to create resource groups and deploy images to an [Azure Compute Gallery](https://docs.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries?tabs=azure-cli). For details on how to create these credentials, see the [Azure Login action docs](https://github.com/Azure/login#configure-deployment-credentials).
 3. Open the `build_images.yml` file and update the environment variables: [`galleryName`](https://github.com/Azure/dev-box-images/blob/main/.github/workflows/build_images.yml#L4) and [`resourceGroup`](https://github.com/Azure/dev-box-images/blob/main/.github/workflows/build_images.yml#L5) to match your Azure Compute Gallery.
 
+**Important: when pasting in the value for `AZURE_CREDENTIALS`, remove all line breaks so that the JSON is on a single line. Otherwise GitHub will assume subscriptionId and tenantId are secrets and prevent them from being share across workflow jobs.**
+
+Example:
+
+```json
+{ "clientId": "<GUID>", "clientSecret": "<GUID>", "subscriptionId": "<GUID>", "tenantId": "<GUID>" }
+```
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
