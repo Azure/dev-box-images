@@ -1,8 +1,8 @@
 name: Build Images
 
 env:
-  galleryName: acgGalleryDev1
-  resourceGroup: rg-fidalgo-dev
+  galleryName: acgGalleryDev01
+  resourceGroup: rg-testdevbox-dev
 
 concurrency: ${{ github.ref }}
 
