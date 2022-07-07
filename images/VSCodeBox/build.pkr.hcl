@@ -38,9 +38,11 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     inline            = [
+      "choco install git --confirm",
+      "choco install maven --confirm",
       "choco install postman --confirm",
       "choco install googlechrome --confirm",
-      "choco install firefox --confirm"
+      "choco install adoptopenjdk8 --confirm"
     ]
   }
 
@@ -48,11 +50,10 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     scripts           = [
-      "../../scripts/Install-DotNet.ps1",
       "../../scripts/Install-Python.ps1",
-      "../../scripts/Install-GitHubDesktop.ps1",
       "../../scripts/Install-AzureCLI.ps1",
-      "../../scripts/Install-VSCode.ps1"
+      "../../scripts/Install-VSCode.ps1",
+      "../../scripts/Install-HyperV.ps1"
     ]
   }
 

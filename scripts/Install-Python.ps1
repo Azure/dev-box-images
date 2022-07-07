@@ -3,7 +3,7 @@
 
 $ProgressPreference = 'SilentlyContinue'	# hide any progress output
 
-$pythonVersion = "3.10.5"
+$pythonVersion = "3.8.13"
 
 $installerName = "python-${pythonVersion}-amd64.exe"
 $InstallerPath = Join-Path -Path $env:TEMP -ChildPath $installerName
