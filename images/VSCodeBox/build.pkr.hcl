@@ -16,11 +16,11 @@ build {
     pause_before          = "2m"
   }
 
-  provisioner "powershell" {
-    elevated_user     = build.User
-    elevated_password = build.Password
-    script            = "../../scripts/Install-Updates.ps1"
-  }
+  # provisioner "powershell" {
+  #   elevated_user     = build.User
+  #   elevated_password = build.Password
+  #   script            = "../../scripts/Install-Updates.ps1"
+  # }
 
   provisioner "windows-restart" {
     # needed to get finalize updates with reboot required
@@ -54,8 +54,8 @@ build {
       "../../scripts/Install-AzureCLI.ps1",
       "../../scripts/Install-VSCode.ps1",
       #"../../scripts/Install-HyperV.ps1",
-      #"../../scripts/Install-Eclipse.ps1",   
-      #"../../scripts/Install-GCloudCLI.ps1"  # depends on python
+      "../../scripts/Install-Eclipse.ps1",   
+      "../../scripts/Install-GCloudCLI.ps1"  # depends on python
     ]
   }
 
