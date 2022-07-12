@@ -16,16 +16,16 @@ variable "galleryName" {
   description = "The name of the gallery to use for the build"
 }
 
+variable "galleryResourceGroup" {
+  type    = string
+  default = ""
+  description = "The resource group to use for the managed image"
+}
+
 variable "image" {
   type    = string
   default = ""
   description = "The name of the image to use for the build"
-}
-
-variable "location" {
-  type    = string
-  default = ""
-  description = "The location to use for the build"
 }
 
 variable "replicaLocations" {
@@ -34,16 +34,28 @@ variable "replicaLocations" {
   description = "The locations to replicate the image to"
 }
 
-variable "resourceGroup" {
+variable "resolvedResourceGroup" {
   type    = string
   default = ""
-  description = "The resource group to use for the managed image"
+  description = ""
+}
+
+variable "location" {
+  type    = string
+  default = ""
+  description = "Azure datacenter in which your VM will build, if this is provided buildResourceGroup should be left blank"
 }
 
 variable "tempResourceGroup" {
   type    = string
   default = ""
-  description = "The resource group to use for the build"
+  description = "Name assigned to the temporary resource group created during the build. If this value is not set, a random value will be assigned. This resource group is deleted at the end of the build. If this is provided buildResourceGroup should be left blank"
+}
+
+variable "buildResourceGroup" {
+  type    = string
+  default = ""
+  description = "Specify an existing resource group to run the build in. If this is provided tempResourceGroup and location should not be provided"
 }
 
 variable "subscription" {

@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "create venv",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-m",
+                "venv",
+                ".venv"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "showReuseMessage": false,
+            },
+            "icon": {
+                "id": "new-folder",
+                "color": "terminal.ansiBlue"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "delete venv",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-r",
+                ".venv"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "showReuseMessage": false,
+            },
+            "icon": {
+                "id": "trash",
+                "color": "terminal.ansiRed"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

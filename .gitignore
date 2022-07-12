@@ -11,3 +11,5 @@ crash.log
 .[lL]ocal
 
 .DS_Store
+
+.venv

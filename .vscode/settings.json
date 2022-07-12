@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/.vs": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/__pycache__": true
+    }
+}
