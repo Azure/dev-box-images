@@ -50,10 +50,10 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     scripts           = [
+      "../../scripts/Install-HyperV.ps1",
       "../../scripts/Install-Python3.8.ps1",
       "../../scripts/Install-AzureCLI.ps1",
       "../../scripts/Install-VSCode.ps1",
-      #"../../scripts/Install-HyperV.ps1",
       "../../scripts/Install-Eclipse.ps1",   
       "../../scripts/Install-GCloudCLI.ps1"  # depends on python
     ]
