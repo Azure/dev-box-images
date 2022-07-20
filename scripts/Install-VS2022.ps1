@@ -7,14 +7,14 @@
 
 $ProgressPreference = 'SilentlyContinue'	# hide any progress output
 
-$vsInstallerName = "vs_enterprise.exe"
-$vsInstallerPath = Join-Path -Path $env:TEMP -ChildPath $vsInstallerName
+$installerName = "vs_enterprise.exe"
+$installerPath = Join-Path -Path $env:TEMP -ChildPath $installerName
 
 Write-Host "[${env:username}] Downloading VS2022 ..."
-(new-object net.webclient).DownloadFile('https://aka.ms/vs/17/release/vs_enterprise.exe', $vsInstallerPath)
+(new-object net.webclient).DownloadFile('https://aka.ms/vs/17/release/vs_enterprise.exe', $installerPath)
 
 Write-Host "[${env:username}] Installing VS2022 ..."
-$process = Start-Process -FilePath $vsInstallerPath -ArgumentList `
+$process = Start-Process -FilePath $installerPath -ArgumentList `
 	"--add", "Microsoft.VisualStudio.Workload.CoreEditor", `
 	"--add", "Microsoft.VisualStudio.Workload.Azure", `
 	"--add", "Microsoft.VisualStudio.Workload.NetWeb", `

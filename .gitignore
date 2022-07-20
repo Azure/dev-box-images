@@ -13,3 +13,5 @@ crash.log
 .DS_Store
 
 .venv
+
+local.auto.pkrvars.json

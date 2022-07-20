@@ -2,6 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "packer fmt",
+            "type": "shell",
+            "command": "packer fmt VS2022Box && packer fmt VSCodeBox",
+            "options": {
+                "cwd": "${workspaceFolder}/images"
+            },
+            "presentation": {
+                "showReuseMessage": false,
+                "close": true
+            },
+            "icon": {
+                "id": "wrench",
+                "color": "terminal.ansiBlue"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "create venv",
             "type": "shell",
             "command": "python3",

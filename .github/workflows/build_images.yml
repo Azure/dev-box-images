@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      build: ${{ steps.packer-definitions.outputs.build }}
-      matrix: ${{ steps.packer-definitions.outputs.matrix }}
+      build: ${{ steps.images.outputs.build }}
+      matrix: ${{ steps.images.outputs.matrix }}
 
     steps:
       - uses: actions/checkout@v2
@@ -26,26 +26,9 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - run: npm install js-yaml
-
-      - name: Get Gallery Definition
-        id: gallery-definitions
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const script = require('./.github/scripts/gallery.js');
-            await script({github, context, core, glob, exec});
-
       - name: Get Image Definitions
-        id: packer-definitions
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const script = require('./.github/scripts/images.js');
-            await script({github, context, core, glob, exec});
-        env:
-          galleryName: ${{ steps.gallery-definitions.outputs.name }}
-          galleryResourceGroup: ${{ steps.gallery-definitions.outputs.resourceGroup }}
+        id: images
+        uses: ./.github/actions/images
 
   build:
     needs: prepare
@@ -62,6 +45,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Create Variables File
+        shell: python
+        run: |
+          import json
+
+          variables = '${{ matrix.source }}/vars.auto.pkrvars.json'
+          matrix_json = '''${{ toJson(matrix) }}'''
+          image = json.loads(matrix_json)
+
+          with open(variables, 'w') as f:
+            json.dump(image, f, ensure_ascii=False, indent=4, sort_keys=True)
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -71,6 +66,18 @@ jobs:
         working-directory: ${{ matrix.source }}
         run: packer init .
 
+      - name: Validate Packer Template
+        working-directory: ${{ matrix.source }}
+        run: |
+
+          packer validate \
+            -var "branch=${{ github.ref }}" \
+            -var "commit=${{ github.sha }}" \
+            -var "subscription=$(az account show --query 'id' -o tsv)" \
+            . # <== run in the current folder
+
+          exit $?
+
       - name: Build Image with Packer
         working-directory: ${{ matrix.source }}
         run: |
@@ -79,16 +86,7 @@ jobs:
           packer build -force \
             -var "branch=${{ github.ref }}" \
             -var "commit=${{ github.sha }}" \
-            -var "galleryName=${{ matrix.galleryName }}" \
-            -var "galleryResourceGroup=${{ matrix.galleryResourceGroup }}" \
-            -var "image=${{ matrix.name }}" \
-            -var 'replicaLocations=${{ matrix.locations }}' \
-            -var "location=${{ matrix.location }}" \
-            -var "tempResourceGroup=${{ matrix.tempResourceGroup }}" \
-            -var "buildResourceGroup=${{ matrix.buildResourceGroup }}" \
-            -var "resolvedResourceGroup=${{ matrix.resolvedResourceGroup }}" \
             -var "subscription=$(az account show --query 'id' -o tsv)" \
-            -var "version=${{ matrix.version }}" \
             . # <== run in the current folder
 
           exit $?

@@ -23,12 +23,14 @@ The following software is installed on all images. Use [this form](/../../issues
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Google Chrome](https://www.google.com/chrome/)
 - [Firefox](https://www.mozilla.org/en-US/firefox/new/)
+- Git
 - [GitHub Desktop](https://desktop.github.com/)
 - [Postman](https://www.postman.com/)
 - [Chocolatey](https://chocolatey.org/)
 - [.Net](https://dotnet.microsoft.com/en-us/) (versions 3.1, 5.0, 6.0, 7.0)
 - [Python](https://www.python.org/) (version 3.10.5)
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/what-is-azure-cli) (2.37.0)
+- [Az PowerShell module](https://docs.microsoft.com/en-us/powershell/azure/what-is-azure-powershell)
 
 ---
 
