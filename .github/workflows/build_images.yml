@@ -8,7 +8,6 @@ concurrency: ${{ github.ref }}
 
 on:
   push:
-    branches: [main]
     paths:
       - 'images/**'
       - 'scripts/**'
