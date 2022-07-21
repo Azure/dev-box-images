@@ -1,7 +1,7 @@
 $ProgressPreference = 'SilentlyContinue'
 
 # Prepare the first run script
-$postScriptFilePath = "C:\Program Files\Firstrun.ps1"
+$postScriptFilePath = "C:\Program Files\Firstrun.bat"
 New-Item $postScriptFilePath -Force
 Set-Content $postScriptFilePath "choco install --wsl2 --confirm `r`nchoco install wsl-ubuntu-2004 --confirm"
 
@@ -18,7 +18,7 @@ New-Item -Path $regHKURunonceParentPath  -Name $runonceName -Force
 
 $regHKURunoncePath = "$regHKURunonceParentPath\$runonceName"
 $firstRunKey = "firstrun"
-$firstRunValue = "PowerShell $postScriptFilePath"
+$firstRunValue = $postScriptFilePath
 New-ItemProperty -Path $regHKURunoncePath -Name $firstRunKey -Value $firstRunValue -PropertyType String -Force 
 
 [gc]::collect()
