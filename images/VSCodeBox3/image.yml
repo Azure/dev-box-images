@@ -1,0 +1,9 @@
+description: Windows 11 Enterprise + M365 Apps + VSCode
+publisher: Contoso3
+offer: DevBox3
+sku: win11-vscode
+version: 1.0.1
+os: Windows
+locations:
+  - eastus
+  - westeurope

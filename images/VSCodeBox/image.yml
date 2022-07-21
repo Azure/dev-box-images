@@ -1,9 +1,0 @@
-description: Windows 11 Enterprise + M365 Apps + Java
-publisher: Contoso
-offer: DevBox
-sku: win11-vscode
-version: 1.0.16
-os: Windows
-locations:
-  - eastus
-  - westeurope
