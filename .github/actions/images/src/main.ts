@@ -86,7 +86,7 @@ async function run(): Promise<void> {
         include: include
     };
 
-    core.setOutput('matrix', JSON.stringify(matrix));
+    core.setOutput('matrix', JSON.stringify(matrix).replace(/\\/gm, '\\\\'));
     core.setOutput('build', matrix.include.length > 0);
 }
 

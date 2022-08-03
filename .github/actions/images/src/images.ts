@@ -5,6 +5,7 @@ import { PushEvent } from '@octokit/webhooks-types';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
 
+import * as path from 'path';
 import { parseRepos } from './repos';
 import { Gallery, Image } from './types';
 
@@ -12,7 +13,7 @@ const workspace = process.env.GITHUB_WORKSPACE;
 
 const parseImage = async (gallery: Gallery, file: string): Promise<Image> => {
 
-    const imageName = file.split('/').slice(-2)[0];
+    const imageName = file.split(path.sep).slice(-2)[0];
 
     core.startGroup(`Processing image config ${imageName} : ${file}`);
 
@@ -23,8 +24,8 @@ const parseImage = async (gallery: Gallery, file: string): Promise<Image> => {
     image.galleryName = gallery.name;
     image.galleryResourceGroup = gallery.resourceGroup;
 
-    image.source = file.split('/image.y')[0]; // ex: /home/runner/work/devbox-images/devbox-images/images/VSCodeBox
-    image.path = image.source.split(`${workspace}/`)[1]; // ex: images/VSCodeBox/image.yml
+    image.source = file.split(`${path.sep}image.y`)[0]; // ex: /home/runner/work/devbox-images/devbox-images/images/VSCodeBox
+    image.path = image.source.split(`${workspace}${path.sep}`)[1]; // ex: images/VSCodeBox/image.yml
 
     image.useBuildGroup = !!image.buildResourceGroup && image.buildResourceGroup.length > 0;
 
@@ -97,7 +98,7 @@ export async function getImages(gallery: Gallery): Promise<Image[]> {
     const changeAll = changes === undefined || changes.some(c => c.startsWith(`scripts/`));
 
     images.forEach(image => {
-        image.changed = changeAll || changes.some(change => change.startsWith(image.path));
+        image.changed = changeAll || changes.some(change => change.startsWith(image.path.replace(/\\/gm, '\/')));
     });
 
     return images;
