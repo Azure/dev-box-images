@@ -42,6 +42,10 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
+    env:
+      # PACKER_LOG: 1
+      PACKER_PLUGIN_PATH: ${{ matrix.source }}
+
     steps:
       - uses: actions/checkout@v2
 
@@ -64,31 +68,18 @@ jobs:
 
       - name: Init Packer
         working-directory: ${{ matrix.source }}
-        run: packer init .
+        run: packer init "./"
 
       - name: Validate Packer Template
         working-directory: ${{ matrix.source }}
         run: |
-
-          packer validate \
-            -var "branch=${{ github.ref }}" \
-            -var "commit=${{ github.sha }}" \
-            -var "subscription=$(az account show --query 'id' -o tsv)" \
-            . # <== run in the current folder
-
+          packer validate -var "branch=${{ github.ref }}" -var "commit=${{ github.sha }}" -var "subscription=$(az account show --query 'id' -o tsv)" "./"
           exit $?
 
       - name: Build Image with Packer
         working-directory: ${{ matrix.source }}
         run: |
-
-          # run packer to build the image
-          packer build -force \
-            -var "branch=${{ github.ref }}" \
-            -var "commit=${{ github.sha }}" \
-            -var "subscription=$(az account show --query 'id' -o tsv)" \
-            . # <== run in the current folder
-
+          packer build -force -var "branch=${{ github.ref }}" -var "commit=${{ github.sha }}" -var "subscription=$(az account show --query 'id' -o tsv)" "./" # <== run in the current folder
           exit $?
 
   cleanup:
