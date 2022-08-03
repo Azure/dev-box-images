@@ -15,3 +15,6 @@ crash.log
 .venv
 
 local.auto.pkrvars.json
+
+
+__pycache__/

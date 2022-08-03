@@ -9,98 +9,44 @@ on:
     paths:
       - 'images/**'
       - 'scripts/**'
+      # - 'tools/**'
+      # - '.github/**'
 
 jobs:
   prepare:
+    # runs-on: windows-latest
     runs-on: ubuntu-latest
 
     outputs:
       build: ${{ steps.images.outputs.build }}
-      matrix: ${{ steps.images.outputs.matrix }}
+      images: ${{ steps.images.outputs.images }}
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Get Image Definitions
         id: images
-        uses: ./.github/actions/images
+        run: python "./tools/images.py"
 
   build:
     needs: prepare
+    # runs-on: windows-latest
     runs-on: ubuntu-latest
-    # continue-on-error: true
 
     # this is needed to avoid workflow errors in case of an empty matrix
     if: ${{ needs.prepare.outputs.build == 'true' }}
 
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
-
-    env:
-      # PACKER_LOG: 1
-      PACKER_PLUGIN_PATH: ${{ matrix.source }}
+      matrix: ${{ fromJson(needs.prepare.outputs.images) }}
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create Variables File
-        shell: python
-        run: |
-          import json
-
-          variables = '${{ matrix.source }}/vars.auto.pkrvars.json'
-          matrix_json = '''${{ toJson(matrix) }}'''
-          image = json.loads(matrix_json)
-
-          with open(variables, 'w') as f:
-            json.dump(image, f, ensure_ascii=False, indent=4, sort_keys=True)
-
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Init Packer
-        working-directory: ${{ matrix.source }}
-        run: packer init "./"
-
-      - name: Validate Packer Template
-        working-directory: ${{ matrix.source }}
-        run: |
-          packer validate -var "branch=${{ github.ref }}" -var "commit=${{ github.sha }}" -var "subscription=$(az account show --query 'id' -o tsv)" "./"
-          exit $?
-
-      - name: Build Image with Packer
-        working-directory: ${{ matrix.source }}
-        run: |
-          packer build -force -var "branch=${{ github.ref }}" -var "commit=${{ github.sha }}" -var "subscription=$(az account show --query 'id' -o tsv)" "./" # <== run in the current folder
-          exit $?
-
-  cleanup:
-    needs:
-      - prepare
-      - build
-    runs-on: ubuntu-latest
-
-    # this is needed to avoid workflow errors in case of an empty matrix
-    if: always() && ${{ needs.prepare.outputs.build == 'true' }}
-
-    strategy:
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
-
-    steps:
-      - name: Login to Azure
-        if: ${{ matrix.tempResourceGroup != '' }}
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Delete Artifacts
-        if: ${{ matrix.tempResourceGroup != '' }}
-        run: az group delete -g "${{ matrix.tempResourceGroup }}" -y --no-wait || true
+      - name: Build ${{ matrix.name }}
+        run: python "./tools/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }} --packer

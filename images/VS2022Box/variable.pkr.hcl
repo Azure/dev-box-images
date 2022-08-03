@@ -10,16 +10,12 @@ variable "commit" {
   description = "The commit to use for the build"
 }
 
-variable "galleryName" {
-  type        = string
-  default     = ""
-  description = "The name of the gallery to use for the build"
-}
-
-variable "galleryResourceGroup" {
-  type        = string
-  default     = ""
-  description = "The resource group to use for the managed image"
+variable "gallery" {
+  type = object({
+    name          = string
+    resourceGroup = string
+  })
+  description = "The azure compute gallery to publish the image"
 }
 
 variable "name" {
@@ -32,12 +28,6 @@ variable "replicaLocations" {
   type        = list(string)
   default     = []
   description = "The locations to replicate the image to"
-}
-
-variable "resolvedResourceGroup" {
-  type        = string
-  default     = ""
-  description = ""
 }
 
 variable "location" {

@@ -6,8 +6,5 @@
         "**/.git": true,
         "**/.DS_Store": true,
         "**/__pycache__": true,
-        ".github/actions/images/dist": true,
-        ".github/actions/images/lib": true,
-        ".github/actions/images/node_modules": true,
     }
 }

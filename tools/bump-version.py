@@ -20,7 +20,8 @@ if major and minor:
 images = args.images
 allimages = not images
 
-imgspath = Path(Path.cwd() / 'images')
+toolspath = Path(__file__).resolve().parent
+imgspath = Path(toolspath.parent / 'images')
 
 paths = []
 

@@ -25,7 +25,7 @@ source "azure-arm" "vm" {
   image_version                     = "latest"
   use_azure_cli_auth                = true
   managed_image_name                = var.name
-  managed_image_resource_group_name = var.galleryResourceGroup
+  managed_image_resource_group_name = var.gallery.resourceGroup
   location                          = var.location
   temp_resource_group_name          = var.tempResourceGroup
   build_resource_group_name         = var.buildResourceGroup
@@ -35,8 +35,8 @@ source "azure-arm" "vm" {
   vm_size                           = "Standard_D8s_v3"
   shared_image_gallery_destination {
     subscription         = var.subscription
-    resource_group       = var.galleryResourceGroup
-    gallery_name         = var.galleryName
+    gallery_name         = var.gallery.name
+    resource_group       = var.gallery.resourceGroup
     image_name           = var.name
     image_version        = var.version
     replication_regions  = var.replicaLocations
@@ -52,7 +52,7 @@ build {
       "ADMIN_USERNAME=${build.User}",
       "ADMIN_PASSWORD=${build.Password}"
     ]
-    script = "../../scripts/Enable-AutoLogon.ps1"
+    script = "${path.root}/../../scripts/Enable-AutoLogon.ps1"
   }
 
   provisioner "windows-restart" {
@@ -69,9 +69,9 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     scripts = [
-      "../../scripts/Install-PsModules.ps1",
-      "../../scripts/Install-AzPsModule.ps1",
-      "../../scripts/Install-Chocolatey.ps1"
+      "${path.root}/../../scripts/Install-PsModules.ps1",
+      "${path.root}/../../scripts/Install-AzPsModule.ps1",
+      "${path.root}/../../scripts/Install-Chocolatey.ps1"
     ]
   }
 
@@ -89,13 +89,13 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     scripts = [
-      "../../scripts/Install-Git.ps1",
-      "../../scripts/Install-GitHub-CLI.ps1",
-      "../../scripts/Install-DotNet.ps1",
-      "../../scripts/Install-Python.ps1",
-      "../../scripts/Install-GitHubDesktop.ps1",
-      "../../scripts/Install-AzureCLI.ps1",
-      "../../scripts/Install-VSCode.ps1"
+      "${path.root}/../../scripts/Install-Git.ps1",
+      "${path.root}/../../scripts/Install-GitHub-CLI.ps1",
+      "${path.root}/../../scripts/Install-DotNet.ps1",
+      "${path.root}/../../scripts/Install-Python.ps1",
+      "${path.root}/../../scripts/Install-GitHubDesktop.ps1",
+      "${path.root}/../../scripts/Install-AzureCLI.ps1",
+      "${path.root}/../../scripts/Install-VSCode.ps1"
     ]
   }
 
@@ -103,13 +103,13 @@ build {
   // provisioner "powershell" {
   //   elevated_user     = build.User
   //   elevated_password = build.Password
-  //   scripts           = [for r in var.repos : "../../scripts/Clone-Repo.ps1 -Url '${r.url}' -Secret '${r.secret}'"]
+  //   scripts           = [for r in var.repos : "${path.root}/../../scripts/Clone-Repo.ps1 -Url '${r.url}' -Secret '${r.secret}'"]
   // }
 
   provisioner "powershell" {
     scripts = [
-      "../../scripts/Disable-AutoLogon.ps1",
-      "../../scripts/Generalize-VM.ps1"
+      "${path.root}/../../scripts/Disable-AutoLogon.ps1",
+      "${path.root}/../../scripts/Generalize-VM.ps1"
     ]
   }
 }
