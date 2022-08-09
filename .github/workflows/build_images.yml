@@ -48,5 +48,5 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build ${{ matrix.name }}
-        run: python "./tools/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }} --packer
+      - name: Build ${{ matrix.name }} with ${{ matrix.builder }}
+        run: python "./tools/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }} --build

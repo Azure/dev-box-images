@@ -2,24 +2,45 @@ import argparse
 import os
 from pathlib import Path
 
-import azure
 import syaml
 
 this_path = Path(__file__).resolve().parent
 repo_root = this_path.parent
 images_root = repo_root / 'images'
 
-required_properties = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations']
+required_properties = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder']
+
+is_github = os.environ.get('GITHUB_ACTIONS', False)
+
+
+def log_message(msg):
+    print(f'[tools/images] {msg}')
+
+
+def log_warning(msg):
+    if is_github:
+        print(f'::warning:: {msg}')
+    else:
+        log_message(f'WARNING: {msg}')
+
+
+def log_error(msg):
+    if is_github:
+        print(f'::error:: {msg}')
+    else:
+        log_message(f'ERROR: {msg}')
+
+    raise ValueError(msg)
 
 
 def validate(image):
     for required_property in required_properties:
         if required_property not in image:
-            print(f'::error:: image.yaml for {image["name"]} is missing required property {required_property}')
-            raise ValueError(f'image.yaml for {image["name"]} is missing required property {required_property}')
+            log_error(f'image.yaml for {image["name"]} is missing required property {required_property}')
         if not image[required_property]:
-            print(f'::error:: image.yaml for {image["name"]} is missing a value for required property {required_property}')
-            raise ValueError(f'image.yaml for {image["name"]} is missing a value for required property {required_property}')
+            log_error(f'image.yaml for {image["name"]} is missing a value for required property {required_property}')
+    if image['builder'] not in ['packer', 'azure']:
+        log_error(f'image.yaml for {image["name"]} has an invalid builder property value {image["builder"]}')
 
 
 def get(image_name) -> dict:
@@ -29,54 +50,35 @@ def get(image_name) -> dict:
 
     ### Returns:
     A dictionary of the contents of the image.yaml file.
-
-    #### example:
-    ```
-    {
-      'description': 'Windows 11 Enterprise + M365 Apps + VSCode',
-      'publisher': 'Contoso',
-      'offer': 'DevBox',
-      'sku': 'win11-vscode',
-      'version': '1.0.25',
-      'os': 'Windows',
-      'replicaLocations': [
-        'eastus',
-        'westeurope'
-      ],
-      'name': 'VSCodeBox',
-      'path': '/Users/user/GitHub/user/devbox-images/images/VSCodeBox',
-      'gallery': {
-        'name': 'Contoso',
-        'resourceGroup': 'Compute-Gallery'
-      },
-      'location': 'eastus',
-      'tempResourceGroup': 'Contoso-VSCodeBox-20220722190624'
-    }
-    ```
     '''
 
     image_dir = images_root / image_name
 
     if not os.path.isdir(image_dir):
-        print(f'::error:: directory for image {image_name} not found at {image_dir}')
-        raise ValueError(f'directory for image {image_name} not found at {image_dir}')
+        log_error(f'directory for image {image_name} not found at {image_dir}')
 
     image_yaml = os.path.isfile(os.path.join(image_dir, 'image.yaml'))
     image_yml = os.path.isfile(os.path.join(image_dir, 'image.yml'))
 
     if not image_yaml and not image_yml:
-        print(f'::error:: image.yaml or image.yml not found {image_dir}')
-        raise ValueError(f'image.yaml or image.yml not found {image_dir}')
+        log_error(f'image.yaml or image.yml not found {image_dir}')
 
     if image_yaml and image_yml:
-        print(f"::error:: found both 'image.yaml' and 'image.yml' in {image_dir} of repository. only one image yaml file allowed")
-        raise ValueError(f"found both 'image.yaml' and 'image.yml' in {image_dir} of repository. only one image yaml file allowed")
+        log_error(f"found both 'image.yaml' and 'image.yml' in {image_dir} of repository. only one image yaml file allowed")
 
     image_path = image_dir / 'image.yaml' if image_yaml else image_dir / 'image.yml'
 
     image = syaml.parse(image_path)
     image['name'] = Path(image_dir).name
     image['path'] = f'{image_dir}'
+
+    if 'builder' in image and image['builder']:
+        if image['builder'].lower() in ['az', 'azure', 'aib', 'azureimagebuilder' 'azure-image-builder', 'imagebuilder', 'image-builder']:
+            image['builder'] = 'azure'
+        elif image['builder'].lower() in ['packer', 'pkr']:
+            image['builder'] = 'packer'
+    else:
+        image['builder'] = 'packer'
 
     validate(image)
 
@@ -89,33 +91,7 @@ def all() -> list:
     Looks for a directories containing a 'image.yaml' or 'image.yml' file in the /images direcory and returns a list of dictionaries of the contents.
 
     ### Returns:
-    A dictionary of the contents of the image.yaml file.
-
-    #### example:
-    ```
-    [
-      {
-        'description': 'Windows 11 Enterprise + M365 Apps + VSCode',
-        'publisher': 'Contoso',
-        'offer': 'DevBox',
-        'sku': 'win11-vscode',
-        'version': '1.0.25',
-        'os': 'Windows',
-        'replicaLocations': [
-          'eastus',
-          'westeurope'
-        ],
-        'name': 'VSCodeBox',
-        'path': '/Users/user/GitHub/user/devbox-images/images/VSCodeBox',
-        'gallery': {
-          'name': 'Contoso',
-          'resourceGroup': 'Compute-Gallery'
-        },
-        'location': 'eastus',
-        'tempResourceGroup': 'Contoso-VSCodeBox-20220722190624'
-      }
-    ]
-    ```
+    A list of dictionaries with the contents of the image.yaml files.
     '''
     images = []
 
@@ -133,14 +109,15 @@ def main(images):
     import json
     imgs = [get(i) for i in images] if images else all()
 
-    print("::set-output name=images::{}".format(json.dumps({'include': imgs})))
-    print("::set-output name=build::{}".format(len(imgs) > 0))
+    if is_github:
+        print("::set-output name=images::{}".format(json.dumps({'include': imgs})))
+        print("::set-output name=build::{}".format(len(imgs) > 0))
 
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='builds a single image. assumes the image is already using the build.py without the --packer | -p arg.')
-    parser.add_argument('--images', '-i', nargs='*', help='names of images to build. if not specified all images will be')
+    parser = argparse.ArgumentParser(description='generates the matrix for fan out builds in github actions.')
+    parser.add_argument('--images', '-i', nargs='*', help='names of images to include. if not specified all images will be')
 
     args = parser.parse_args()
 

@@ -79,7 +79,7 @@ build {
     elevated_user     = build.User
     elevated_password = build.Password
     inline = [
-      "choco install postman --yes --no-progress",
+      // "choco install postman --yes --no-progress",
       "choco install googlechrome --yes --no-progress",
       "choco install firefox --yes --no-progress"
     ]

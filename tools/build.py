@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -13,6 +14,9 @@ this_path = Path(__file__).resolve().parent
 repo_root = this_path.parent
 images_root = repo_root / 'images'
 
+is_github = os.environ.get('GITHUB_ACTIONS', False)
+
+
 parser = argparse.ArgumentParser(description='Build custom images for Microsoft Dev Box using Packer then pubish them to an Azure Compute Gallery.'
                                  'This script asumes the presence of a gallery.yaml file in the root of the repository and image.yaml files in each subdirectory of the /images directory',
                                  epilog='example: python3 build.py --suffix 22 --packer')
@@ -20,13 +24,13 @@ parser.add_argument('--async', '-a', dest='is_async', action='store_true', help=
 parser.add_argument('--images', '-i', nargs='*', help='names of images to build. if not specified all images will be')
 parser.add_argument('--changes', '-c', nargs='*', help='paths of the files that changed to determine which images to build. if not specified all images will be built')
 parser.add_argument('--suffix', '-s', help='suffix to append to the resource group name. if not specified, the current time will be used')
-parser.add_argument('--packer', '-p', dest='run_packer', action='store_true',
-                    help='execute packer init and build on the images. if not specified, the images will not be built, but the variable files will still be created')
+parser.add_argument('--build', '-b', dest='run_build', action='store_true', help='build images with packer or azure image builder depening on the builder property in the image definition yaml')
+
 
 args = parser.parse_args()
 
 is_async = args.is_async
-run_packer = args.run_packer
+run_build = args.run_build
 
 suffix = args.suffix if args.suffix else datetime.now(timezone.utc).strftime('%Y%m%d%H%M')
 
@@ -35,6 +39,26 @@ imgs = [images.get(i) for i in args.images] if args.images else images.all()
 
 for img in imgs:
     img['gallery'] = gal
+
+
+def log_message(msg):
+    print(f'[tools/build] {msg}')
+
+
+def log_warning(msg):
+    if is_github:
+        print(f'::warning:: {msg}')
+    else:
+        log_message(f'WARNING: {msg}')
+
+
+def log_error(msg):
+    if is_github:
+        print(f'::error:: {msg}')
+    else:
+        log_message(f'ERROR: {msg}')
+
+    raise ValueError(msg)
 
 
 def main():
@@ -48,22 +72,51 @@ def main():
             img['location'] = imgdef['location']
             img['tempResourceGroup'] = f'{img["gallery"]["name"]}-{img["name"]}-{suffix}'
 
+        if not img['build']:
+            log_warning('skipping build execution for because --build | -b was not provided')
+
     build_imgs = [i for i in imgs if i['build']]
 
     # set GitHub output
-    print("::set-output name=images::{}".format(json.dumps({'include': build_imgs})))
-    print("::set-output name=build::{}".format(len(build_imgs) > 0))
+    if is_github:
+        print("::set-output name=images::{}".format(json.dumps({'include': build_imgs})))
+        print("::set-output name=build::{}".format(len(build_imgs) > 0))
 
-    packer.save_vars_files(build_imgs)
+    for img in build_imgs:
+        is_github and print(f'::group::Build {img["name"]}')
 
-    if run_packer:
-        for img in build_imgs:
-            print(f'::group::Build {img["name"]}')
-            packer.execute(img)
-            print(f'::endgroup::')
-    else:
-        print('::warning:: skipping packer execution because --packer | -p was not specified')
-        print('skipping packer execution because --packer | -p was not specified')
+        if img['builder'] == 'packer':
+            packer.save_vars_files(img)
+
+            if run_build:
+                packer.execute(img)
+
+        elif img['builder'] == 'azure':
+            azure.save_params_files(build_imgs)
+
+            if run_build:
+                bicep_file = os.path.join(img['path'], 'image.bicep')
+                params_file = '@' + os.path.join(img['path'], 'image.parameters.json')
+
+                existing = azure.cli(['image', 'builder', 'show', '-g', img['gallery']['resourceGroup'], '-n', img['name']])
+                if existing:
+                    log_warning(f'image template {img["name"]} already exists in {img["gallery"]["resourceGroup"]}. deleting')
+                    azure.cli(['image', 'builder', 'delete', '-g', img['gallery']['resourceGroup'], '-n', img['name']])
+
+                log_message(f'Creating image template for {img["name"]}')
+                log_message(f'Deploying bicep template for image template: {bicep_file}')
+                group = azure.cli(['deployment', 'group', 'create', '-n', img['name'], '-g', img['gallery']['resourceGroup'], '-f', bicep_file, '-p', params_file, '--no-prompt'])
+
+                log_message(f'Executing build on image template: {img["name"]}')
+                build = azure.cli(['image', 'builder', 'run', '-g', img['gallery']['resourceGroup'], '-n', img['name']])
+
+        else:
+            log_error(f'image.yaml for {img["name"]} has an invalid builder property value {img["builder"]}')
+
+        is_github and print(f'::endgroup::')
+
+    if not run_build:
+        log_warning('skipping build execution because --build | -b was not provided')
 
 
 async def process_image_async(img):
@@ -76,12 +129,29 @@ async def process_image_async(img):
         img['tempResourceGroup'] = f'{img["gallery"]["name"]}-{img["name"]}-{suffix}'
 
     if img['build']:
-        await packer.save_vars_file_async(img)
-        if run_packer:
-            await packer.execute_async(img)
+        if img['builder'] == 'packer':
+            await packer.save_vars_file_async(img)
+            if run_build:
+                await packer.execute_async(img)
+        elif img['builder'] == 'azure':
+            # TODO: async azure parameters file creation
+            azure.save_params_file(img)
+            # TODO: async azure cli
+            if run_build:
+                bicep_file = os.path.join(img['path'], 'image.bicep')
+                params_file = '@' + os.path.join(img['path'], 'image.parameters.json')
+
+                log_message(f'Creating image template for {img["name"]}')
+                log_message(f'Deploying bicep template for image template: {bicep_file}')
+                group = azure.cli(['deployment', 'group', 'create', '-g', img['gallery']['resourceGroup'], '-f', bicep_file, '-p', params_file, '--no-prompt'])
+
+                log_message(f'Executing build on image template: {img["name"]}')
+                build = azure.cli(['image', 'builder', 'run', '-g', img['gallery']['resourceGroup'], '-n', img['name']])
         else:
-            print('::warning:: skipping packer execution because --packer | -p was not specified')
-            print('skipping packer execution because --packer | -p was not specified')
+            log_error(f'image.yaml for {img["name"]} has an invalid builder property value {img["builder"]}')
+
+    if not run_build:
+        log_warning('skipping build execution because --build | -b was not provided')
 
     return img
 
@@ -89,8 +159,9 @@ async def process_image_async(img):
 async def main_async():
     build_imgs = await asyncio.gather(*[process_image_async(i) for i in imgs])
     # set GitHub output
-    print("::set-output name=matrix::{}".format(json.dumps({'include': build_imgs})))
-    print("::set-output name=build::{}".format(len(build_imgs) > 0))
+    if is_github:
+        print("::set-output name=matrix::{}".format(json.dumps({'include': build_imgs})))
+        print("::set-output name=build::{}".format(len(build_imgs) > 0))
 
 
 if is_async:

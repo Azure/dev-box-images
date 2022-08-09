@@ -15,6 +15,11 @@ crash.log
 .venv
 
 local.auto.pkrvars.json
+vars.auto.pkrvars.json
 
+local.parameters.json
+image.parameters.json
+
+teststuff.py
 
 __pycache__/

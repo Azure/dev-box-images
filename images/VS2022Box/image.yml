@@ -7,3 +7,4 @@ os: Windows
 replicaLocations:
   - eastus
   - westeurope
+# builder: azure

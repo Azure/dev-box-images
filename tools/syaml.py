@@ -1,4 +1,30 @@
+import os
+
+is_github = os.environ.get('GITHUB_ACTIONS', False)
+
+
+def log_message(msg):
+    print(f'[tools/syaml] {msg}')
+
+
+def log_warning(msg):
+    if is_github:
+        print(f'::warning:: {msg}')
+    else:
+        log_message(f'WARNING: {msg}')
+
+
+def log_error(msg):
+    if is_github:
+        print(f'::error:: {msg}')
+    else:
+        log_message(f'ERROR: {msg}')
+
+    raise ValueError(msg)
+
 # simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation
+
+
 def parse(path) -> dict:
     obj = {}
     with open(path, 'r') as yaml:
@@ -10,7 +36,7 @@ def parse(path) -> dict:
 
             if line.lstrip().startswith('-'):  # array item
                 if not parent_key:
-                    raise ValueError(f'array item found without parent key\n{line}')
+                    log_error(f'array item found without parent key\n{line}')
 
                 if parent_key not in obj:
                     obj[parent_key] = []
@@ -34,9 +60,9 @@ def parse(path) -> dict:
                 if line.replace(line.lstrip(), '') != '':  # key is indented (property of an object)
 
                     if not parent_key:
-                        raise ValueError(f'line appears to be a property of an object but no key found in previous lines\n{line}')
+                        log_error(f'line appears to be a property of an object but no key found in previous lines\n{line}')
                     if not value:
-                        raise ValueError(f'line appears to be a property of an object but no value found\n{line}')
+                        log_error(f'line appears to be a property of an object but no value found\n{line}')
 
                     if parent_key not in obj:
                         obj[parent_key] = {}
@@ -54,6 +80,6 @@ def parse(path) -> dict:
                     parent_key = None
 
             else:
-                raise ValueError(f'line does not contain a colon or is misformatted\n{line}')
+                log_error(f'line does not contain a colon or is misformatted\n{line}')
 
     return obj
