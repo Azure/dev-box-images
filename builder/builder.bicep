@@ -8,8 +8,8 @@ param container string = 'ghcr.io/azure/dev-box-images/builder'
 @description('The git repository that contains your image.yml and buiild scripts.')
 param repository string
 
-@description('The branch of the git repository specified in the repository parameter.')
-param branch string = 'main'
+@description('Commit hash for the specified revision for the repository.')
+param revision string = ''
 
 @description('The name of the image to build. This should match the name of a folder inside the /images folder in your repository.')
 param image string
@@ -22,10 +22,10 @@ param clientId string
 param clientSecret string
 
 @description('The name of an existing storage account to use with the container instance. If not specified, the container instance will not mount a persistant file share.')
-param storageAccount string
+param storageAccount string = ''
 
 @description('The resource id of a subnet to use for the container instance. If this is not specified, the container instance will not be created in a virtual network and have a public ip address.')
-param subnetId string
+param subnetId string = ''
 
 @description('The version of the image to build.')
 param version string = 'latest'
@@ -58,7 +58,7 @@ var repoVolume = {
   gitRepo: {
     repository: repository
     directory: '.'
-    revision: branch
+    revision: (!empty(revision) ? revision : null)
   }
 }
 
@@ -69,17 +69,13 @@ var repoVolumeMount = {
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' existing = if (!empty(storageAccount)) {
-  name: storageAccount
-}
-
-resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2021-09-01' existing = if (!empty(storageAccount)) {
-  name: 'default'
-  parent: storage
-}
-
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2021-09-01' = if (!empty(storageAccount)) {
-  name: toLower(image)
-  parent: fileService
+  name: empty(storageAccount) ? 'storageAccount' : storageAccount
+  resource fileServices 'fileServices' = {
+    name: 'default'
+    resource fileShare 'shares' = {
+      name: toLower(image)
+    }
+  }
 }
 
 resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
@@ -90,22 +86,22 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     timestamp: timestamp
   }
   properties: {
-    subnetIds: empty(subnetId) ? [] : [
+    subnetIds: (!empty(subnetId) ? [
       {
         id: subnetId
       }
-    ]
+    ] : null)
     containers: [
       {
         name: toLower(image)
         properties: {
           image: container
-          ports: !empty(subnetId) ? [] : [
+          ports: (empty(subnetId) ? [
             {
               port: 80
               protocol: 'TCP'
             }
-          ]
+          ] : null)
           resources: {
             requests: {
               cpu: 1
@@ -126,7 +122,7 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ]
     osType: 'Linux'
     restartPolicy: 'Never'
-    ipAddress: !empty(subnetId) ? json('null') : {
+    ipAddress: (empty(subnetId) ? {
       type: 'Public'
       ports: [
         {
@@ -134,15 +130,15 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
           protocol: 'TCP'
         }
       ]
-    }
+    } : null)
     volumes: empty(storageAccount) ? [ repoVolume ] : [
       repoVolume
       {
         name: 'storage'
         azureFile: {
-          shareName: fileShare.name
-          storageAccountName: storage.name
-          storageAccountKey: storage.listKeys().keys[0].value
+          shareName: (!empty(storageAccount) ? storage::fileServices::fileShare.name : null)
+          storageAccountName: (!empty(storageAccount) ? storage.name : null)
+          storageAccountKey: (!empty(storageAccount) ? storage.listKeys().keys[0].value : null)
           readOnly: false
         }
       }

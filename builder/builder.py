@@ -30,9 +30,11 @@ storage = Path('/mnt/storage') if in_builder else repo / '.local' / 'storage'
 log.info(f'Repository path: {repo}')
 log.info(f'Storage path: {storage}')
 
-for vol in [repo, storage]:
-    if not os.path.isdir(vol):
-        error_exit(f'Missing volume {vol}')
+if not os.path.isdir(repo):
+    error_exit(f'Missing volume {repo}')
+
+if not os.path.isdir(storage):
+    log.warning(f'Missing volume {storage}')
 
 for env in ['BUILD_IMAGE_NAME']:
     if not os.environ.get(env, False):

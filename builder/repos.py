@@ -32,8 +32,7 @@ def _parse_github_url(url) -> dict:
         'provider': 'github',
         'url': url,
         'org': parts[index + 1],
-        'repo': parts[index + 2],
-        'gitUrl': f'{url}.git',
+        'repo': parts[index + 2]
     }
 
     return repo
@@ -49,6 +48,9 @@ def _parse_devops_url(url) -> dict:
         raise ValueError(f'{url} is not a valid Azure DevOps respository url')
 
     url = url.lower().replace('git@ssh', 'https://').replace(':v3/', '/')
+
+    if '@dev.azure.com' in url:
+        url = 'https://dev.azure.com' + url.split('@dev.azure.com')[1]
 
     if url.endswith('.git'):
         url = url[:-4]
@@ -75,11 +77,14 @@ def _parse_devops_url(url) -> dict:
     repo = {
         'provider': 'devops',
         'url': url,
-        'org': parts[index].replace('visualstudio.com', ''),
-        'project': parts[index + 1],
-        'repo': parts[index + 2],
-        'gitUrl': f'{url}.git'
+        'org': parts[index].replace('.visualstudio.com', '')
     }
+
+    if parts[index + 1] == 'defaultcollection':
+        index += 1
+
+    repo['project'] = parts[index + 1]
+    repo['repo'] = parts[index + 2]
 
     return repo
 
@@ -99,15 +104,27 @@ if __name__ == '__main__':
 
     import json
 
-    test0 = 'git://github.com/codertocat/hello-world.git'
+    test0 = 'git://github.com/colbylwilliams/devbox-images.git'
     test1 = 'https://github.com/colbylwilliams/devbox-images.git'
     test2 = 'git@github.com:colbylwilliams/devbox-images.git'
     test3 = 'https://dev.azure.com/colbylwilliams/MyProject/_git/devbox-images'
     test4 = 'https://colbylwilliams.visualstudio.com/DefaultCollection/MyProject/_git/devbox-images'
-    test5 = 'https://colbylwilliams@dev.azure.com/colbylwilliams/MyProject/_git/devbox-images'
+    test5 = 'https://user@dev.azure.com/colbylwilliams/MyProject/_git/devbox-images'
 
     print('')
     for test in [test0, test1, test2, test3, test4, test5]:
         repo = parse_url(test)
+        if repo['provider'] not in ['github', 'devops']:
+            raise ValueError(f'{repo["provider"]} is not a valid provider')
+        if repo['org'] != 'colbylwilliams':
+            raise ValueError(f'{repo["org"]} is not a valid organization')
+        if repo['provider'] == 'devops' and repo['project'] != 'myproject':
+            raise ValueError(f'{repo["project"]} is not a valid project')
+        if repo['repo'] != 'devbox-images':
+            raise ValueError(f'{repo["repo"]} is not a valid repository')
+        if '@' in repo['url']:
+            raise ValueError(f'{repo["url"]} should not contain an @ symbol')
+
+        print(test)
         print(json.dumps(repo, indent=4))
     print('')

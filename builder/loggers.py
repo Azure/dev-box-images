@@ -25,7 +25,7 @@ def getLogger(name, level=logging.DEBUG):
 
     logger.addHandler(ch)
 
-    if in_builder:
+    if in_builder and os.path.isdir(storage):
         fh = logging.FileHandler(log_file)
         fh.setLevel(level=level)
         fh.setFormatter(formatter)

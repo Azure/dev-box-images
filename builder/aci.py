@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('--async', '-a', dest='is_async', action='store_true', help='build images asynchronously. because the processes run in parallel, the output is not ordered')
     parser.add_argument('--changes', '-c', nargs='*', help='paths of the files that changed to determine which images to build. if not specified all images will be built')
     parser.add_argument('--suffix', '-s', help='suffix to append to the resource group name. if not specified, the current time will be used')
-    parser.add_argument('--skip-build', dest='skip_build', action='store_true',
+    parser.add_argument('--skip-build', action='store_true',
                         help='skip building images with packer or azure image builder depening on the builder property in the image definition yaml')
 
     parser.add_argument('--subnet-id', '-sni', help='The resource id of a subnet to use for the container instance. If this is not specified, the container instance will not be created in a virtual network and have a public ip address.')
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--client-id', '-cid', required=True, help='The client (app) id for the service principal to use for authentication.')
     parser.add_argument('--client-secret', '-cs', required=True, help='The secret for the service principal to use for authentication.')
     parser.add_argument('--repository', '-r', required=True, help='The git repository that contains your image.yml and buiild scripts.')
+    parser.add_argument('--revision', '-b', help='The git repository revision that contains your image.yml and buiild scripts.')
     parser.add_argument('--token', '-t', help='The PAT token to use when cloning the git repository.')
 
     args = parser.parse_args()
@@ -132,20 +133,23 @@ if __name__ == '__main__':
     subnet_id = args.subnet_id
     client_id = args.client_id
     client_secret = args.client_secret
-    storage_account = args.storage_account
 
-    if args.repository:
-        repo = repos.parse_url(args.repository)
-        if args.token:
-            repo['token'] = args.token
+    repo = repos.parse_url(args.repository)
 
     params = {
-        'subnetId': subnet_id,
-        'storageAccount': storage_account,
         'clientId': client_id,
         'clientSecret': client_secret,
-        'repository': repo['gitUrl'].replace('https://', f'https://{repo["token"]}@') if 'token' in repo else repo['gitUrl']
+        'repository': repo['url'].replace('https://', f'https://{args.token}@') if args.token else repo['url']
     }
+
+    if args.revision:
+        params['revision'] = args.revision
+
+    if args.subnet_id:
+        params['subnetId'] = args.subnet_id
+
+    if args.storage_account:
+        params['storageAccount'] = args.storage_account
 
     is_async = args.is_async
     skip_build = args.skip_build
