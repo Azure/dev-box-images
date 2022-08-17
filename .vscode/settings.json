@@ -5,6 +5,6 @@
         "**/obj": true,
         "**/.git": true,
         "**/.DS_Store": true,
-        "**/__pycache__": true,
+        "**/__pycache__": true
     }
 }

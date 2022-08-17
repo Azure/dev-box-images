@@ -1,31 +1,19 @@
-import os
+import sys
 
-is_github = os.environ.get('GITHUB_ACTIONS', False)
+import loggers
 
-
-def log_message(msg):
-    print(f'[tools/syaml] {msg}')
+log = loggers.getLogger(__name__)
 
 
-def log_warning(msg):
-    if is_github:
-        print(f'::warning:: {msg}')
-    else:
-        log_message(f'WARNING: {msg}')
-
-
-def log_error(msg):
-    if is_github:
-        print(f'::error:: {msg}')
-    else:
-        log_message(f'ERROR: {msg}')
-
-    raise ValueError(msg)
-
-# simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation
+def error_exit(message):
+    log.error(message)
+    sys.exit(message)
 
 
 def parse(path) -> dict:
+    '''
+    simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation
+    '''
     obj = {}
     with open(path, 'r') as yaml:
         parent_key = None
@@ -36,7 +24,7 @@ def parse(path) -> dict:
 
             if line.lstrip().startswith('-'):  # array item
                 if not parent_key:
-                    log_error(f'array item found without parent key\n{line}')
+                    error_exit(f'array item found without parent key\n{line}')
 
                 if parent_key not in obj:
                     obj[parent_key] = []
@@ -60,9 +48,9 @@ def parse(path) -> dict:
                 if line.replace(line.lstrip(), '') != '':  # key is indented (property of an object)
 
                     if not parent_key:
-                        log_error(f'line appears to be a property of an object but no key found in previous lines\n{line}')
+                        error_exit(f'line appears to be a property of an object but no key found in previous lines\n{line}')
                     if not value:
-                        log_error(f'line appears to be a property of an object but no value found\n{line}')
+                        error_exit(f'line appears to be a property of an object but no value found\n{line}')
 
                     if parent_key not in obj:
                         obj[parent_key] = {}
@@ -80,6 +68,6 @@ def parse(path) -> dict:
                     parent_key = None
 
             else:
-                log_error(f'line does not contain a colon or is misformatted\n{line}')
+                error_exit(f'line does not contain a colon or is misformatted\n{line}')
 
     return obj

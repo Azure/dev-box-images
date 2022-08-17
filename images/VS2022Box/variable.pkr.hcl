@@ -74,3 +74,25 @@ variable "repos" {
   default     = []
   description = "The repositories to clone on the image"
 }
+
+variable "keyVault" {
+  type        = string
+  default     = ""
+  description = "Specify an existing key vault to use for uploading certificates to the instance to connect."
+}
+
+variable "virtualNetwork" {
+  type        = string
+  default     = ""
+  description = "Use a pre-existing virtual network for the VM"
+}
+
+variable "virtualNetworkSubnet" {
+  type    = string
+  default = ""
+}
+
+variable "virtualNetworkResourceGroup" {
+  type    = string
+  default = ""
+}

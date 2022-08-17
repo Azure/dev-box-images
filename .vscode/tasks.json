@@ -58,6 +58,88 @@
                 "color": "terminal.ansiRed"
             },
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "docker: build",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": "${workspaceFolder}/builder",
+                "dockerfile": "${workspaceFolder}/builder/Dockerfile",
+                "tag": "ghcr.io/${input:imageRepository}/builder:${input:imageTagVersion}",
+                "customOptions": "-t \"ghcr.io/${input:imageRepository}/builder:latest\"",
+                "buildArgs": {
+                    "IMAGE_VERSION": "${input:imageTagVersion}"
+                },
+                "labels": {
+                    "includeDefaults": false
+                }
+            },
+            "icon": {
+                "id": "tools",
+                "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "docker: push",
+            "command": "docker",
+            "args": [
+                "push",
+                "ghcr.io/${input:imageRepository}/builder:${input:imageTagVersion}"
+            ],
+            "dependsOn": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            },
+        },
+        {
+            "label": "docker: push (latest)",
+            "command": "docker",
+            "args": [
+                "push",
+                "ghcr.io/${input:imageRepository}/builder:latest"
+            ],
+            "dependsOn": [
+                "docker: push"
+            ],
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            },
+        },
+        {
+            "label": "docker: build push (latest)",
+            "type": "shell",
+            "command": "echo done.",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "docker: build",
+                "docker: push (latest)"
+            ],
+            "problemMatcher": [],
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            },
+        },
+    ],
+    "inputs": [
+        {
+            "id": "imageRepository",
+            "type": "pickString",
+            "description": "Repository name to push the image.",
+            "default": "azure/dev-box-images",
+            "options": [
+                "azure/dev-box-images",
+                "colbylwilliams/devbox-images"
+            ]
+        },
+        {
+            "id": "imageTagVersion",
+            "type": "promptString",
+            "description": "Version for this tag (also builds a latest version).",
+            "default": "0.1.0"
+        },
     ]
 }

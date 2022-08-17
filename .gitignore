@@ -19,6 +19,7 @@ vars.auto.pkrvars.json
 
 local.parameters.json
 image.parameters.json
+builder.parameters.json
 
 teststuff.py
 

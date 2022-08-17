@@ -1,0 +1,14 @@
+# This file contains common properties to be shared across all individual image.yml files
+# If a image.yml file also contains a value for property in this file, the value in the image.yml
+# file will overwrite the value in this file
+publisher: Contoso
+offer: DevBox
+replicaLocations:
+  - eastus
+  - westeurope
+builder: packer
+# buildResourceGroup: DevBox-Images
+# keyVault: devboximageskv
+# virtualNetwork: devbox-images-vnet
+# virtualNetworkSubnet: default
+# virtualNetworkResourceGroup: DevBox-Images

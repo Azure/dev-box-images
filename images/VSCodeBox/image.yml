@@ -4,7 +4,3 @@ offer: DevBox
 sku: win11-vscode
 version: 1.0.0
 os: Windows
-replicaLocations:
-  - eastus
-  - westeurope
-# builder: azure
