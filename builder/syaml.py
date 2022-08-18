@@ -1,4 +1,6 @@
+import os
 import sys
+from pathlib import Path
 
 import loggers
 
@@ -10,7 +12,46 @@ def error_exit(message):
     sys.exit(message)
 
 
-def parse(path) -> dict:
+def get_file(dir, file, required=True):
+    if not os.path.isdir(dir):
+        if required:
+            error_exit(f'Directory for yaml/yml {file} not found at {dir}')
+        return None
+
+    yaml = os.path.isfile(os.path.join(dir, f'{file}.yaml'))
+    yml = os.path.isfile(os.path.join(dir, f'{file}.yml'))
+
+    if not yaml and not yml:
+        if required:
+            error_exit(f'File {file}.yaml or {file}.yml not found in {dir}')
+        return None
+
+    if yaml and yml:
+        error_exit(f'Found both {file}.yaml and {file}.yml in {dir} of repository. only one {file} yaml file allowed')
+
+    dir_path = dir if isinstance(dir, Path) else Path(dir)
+    file_path = dir_path / f'{file}.yaml' if yaml else dir_path / f'{file}.yml'
+
+    return file_path
+
+
+def validate(path, obj, required=None, allowed=None):
+    if required:
+        for key in required:
+            if key not in obj:
+                error_exit(f'yaml file at {path} is missing required property {key}')
+            if not obj[key]:
+                error_exit(f'yaml file at {path} is missing a value for required property {key}')
+
+    if allowed:
+        for key in obj:
+            if key not in allowed:
+                error_exit(f'yaml file at {path} contains an invalid property {key}')
+
+    return True
+
+
+def parse(path, required=None, allowed=None) -> dict:
     '''
     simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation
     '''
@@ -69,5 +110,7 @@ def parse(path) -> dict:
 
             else:
                 error_exit(f'line does not contain a colon or is misformatted\n{line}')
+
+    validate(path, obj, required, allowed)
 
     return obj

@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import azure as az
-import gallery as gal
 import image as img
 import loggers
 import repos
@@ -48,7 +47,7 @@ def _save_params_file(image, params):
 
 def main(names, params, suffix, skip_build=False):
 
-    gallery = gal.get()
+    gallery = img.get_gallery()
     common = img.get_common()
     images = [img.get(n, gallery, common, suffix, ensure_azure=True) for n in names] if names else img.all(gallery, common, suffix, ensure_azure=True)
 
@@ -103,7 +102,7 @@ async def _process_image_async(name, params, gallery, common, suffix, skip_build
 async def main_async(names, params, suffix, skip_build=False):
     names = names if names else img.image_names()
 
-    gallery = gal.get()
+    gallery = img.get_gallery()
     common = img.get_common()
     build_imgs = await asyncio.gather(*[_process_image_async(n, params, gallery, common, suffix, skip_build) for n in names])
 
