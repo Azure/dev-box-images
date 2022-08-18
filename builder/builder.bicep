@@ -35,6 +35,9 @@ param timestamp string = utcNow()
 @description('Packer variables in the form of key: value pairs to forward to packer when executing packer build the container instance.')
 param packerVars object = {}
 
+var validImageName = replace(image, '_', '-')
+var validImageNameLower = toLower(validImageName)
+
 var defaultEnvironmentVars = [
   { name: 'BUILD_IMAGE_NAME'
     value: image }
@@ -73,13 +76,13 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' existing = if (!
   resource fileServices 'fileServices' = {
     name: 'default'
     resource fileShare 'shares' = {
-      name: toLower(image)
+      name: validImageNameLower
     }
   }
 }
 
 resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
-  name: image
+  name: validImageName
   location: location
   tags: {
     version: version
@@ -93,7 +96,7 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ] : null)
     containers: [
       {
-        name: toLower(image)
+        name: validImageNameLower
         properties: {
           image: container
           ports: (empty(subnetId) ? [
@@ -146,4 +149,4 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
   }
 }
 
-output logs string = 'az container logs -g ${resourceGroup().name} -n ${image}'
+output logs string = 'az container logs -g ${resourceGroup().name} -n ${validImageName}'
