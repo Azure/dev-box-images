@@ -127,10 +127,10 @@ def _get(image_name, gallery, common=None) -> dict:
     if 'subscription' not in image or not image['subscription']:
         if 'subscription' in gallery and gallery['subscription']:
             image['subscription'] = gallery['subscription']
-    # if subscription is defined in imag but not gallery, use image subscription for gallery
-    elif 'subscription' in image and image['subscription']:
-        if 'subscription' not in gallery or not gallery['subscription']:
-            gallery['subscription'] = image['subscription']
+    # if subscription is defined in image but not gallery, use image subscription for gallery
+    if 'subscription' not in image['gallery'] or not image['gallery']['subscription']:
+        if 'subscription' in image and image['subscription']:
+            image['gallery']['subscription'] = image['subscription']
 
     _validate(image)
 
@@ -146,8 +146,9 @@ def get(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> di
         if 'subscription' not in image or not image['subscription']:
             sub = azure.get_sub()
             image['subscription'] = sub
-        if 'subscription' not in gallery or not gallery['subscription']:
-            gallery['subscription'] = image['subscription']
+
+        if 'subscription' not in image['gallery'] or not image['gallery']['subscription']:
+            image['gallery']['subscription'] = image['subscription']
 
         build, image_def = azure.ensure_image_def_version(image)
         image['build'] = build
@@ -174,10 +175,11 @@ async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=
     if ensure_azure:
 
         if 'subscription' not in image or not image['subscription']:
-            sub = await azure.get_sub_async()
+            sub = azure.get_sub()
             image['subscription'] = sub
-        if 'subscription' not in gallery or not gallery['subscription']:
-            gallery['subscription'] = image['subscription']
+
+        if 'subscription' not in image['gallery'] or not image['gallery']['subscription']:
+            image['gallery']['subscription'] = image['subscription']
 
         build, image_def = await azure.ensure_image_def_version_async(image)
         image['build'] = build

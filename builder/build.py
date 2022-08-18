@@ -31,6 +31,9 @@ def main(names, suffix, skip_build=False):
 
         if image['build']:
 
+            if 'subscription' in image and image['subscription']:
+                az.cli(f'az account set -s {image["subscription"]}')
+
             if image['builder'] == 'packer':
                 packer.save_vars_file(image)
 
