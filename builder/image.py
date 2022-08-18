@@ -27,7 +27,8 @@ def error_exit(message):
 
 
 def get_common() -> dict:
-    permitted_properties = ['publisher', 'offer', 'replicaLocations', 'builder', 'buildResourceGroup', 'keyVault', 'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup']
+    permitted_properties = ['publisher', 'offer', 'replicaLocations', 'builder', 'buildResourceGroup',
+                            'keyVault', 'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup', 'subscription']
 
     images_yaml = os.path.isfile(os.path.join(images_root, 'images.yaml'))
     images_yml = os.path.isfile(os.path.join(images_root, 'images.yml'))
@@ -115,12 +116,21 @@ def _get(image_name, gallery, common=None) -> dict:
     else:
         image['builder'] = 'packer'
 
-    image['gallery'] = gallery
-
     if common:
         temp = common.copy()
         temp.update(image)
         image = temp.copy()
+
+    image['gallery'] = gallery
+
+    # if subscription is defined in gallery but not image, use gallery subscription for image
+    if 'subscription' not in image or not image['subscription']:
+        if 'subscription' in gallery and gallery['subscription']:
+            image['subscription'] = gallery['subscription']
+    # if subscription is defined in imag but not gallery, use image subscription for gallery
+    elif 'subscription' in image and image['subscription']:
+        if 'subscription' not in gallery or not gallery['subscription']:
+            gallery['subscription'] = image['subscription']
 
     _validate(image)
 
@@ -132,6 +142,12 @@ def get(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> di
     image = _get(image_name, gallery, common)
 
     if ensure_azure:
+
+        if 'subscription' not in image or not image['subscription']:
+            sub = azure.get_sub()
+            image['subscription'] = sub
+        if 'subscription' not in gallery or not gallery['subscription']:
+            gallery['subscription'] = image['subscription']
 
         build, image_def = azure.ensure_image_def_version(image)
         image['build'] = build
@@ -156,6 +172,12 @@ async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=
     image = _get(image_name, gallery, common)
 
     if ensure_azure:
+
+        if 'subscription' not in image or not image['subscription']:
+            sub = await azure.get_sub_async()
+            image['subscription'] = sub
+        if 'subscription' not in gallery or not gallery['subscription']:
+            gallery['subscription'] = image['subscription']
 
         build, image_def = await azure.ensure_image_def_version_async(image)
         image['build'] = build
@@ -208,8 +230,11 @@ if __name__ == '__main__':
     gallery = get_gallery()
     common = get_common()
 
-    images = [get(i, gallery, common) for i in args.images] if args.images else all(gallery, common)
-    # images = [get(i, gallery, common, suffix, ensure_azure=True) for i in args.images] if args.images else all(gallery, common, suffix, ensure_azure=True)
+    # images = [get(i, gallery, common) for i in args.images] if args.images else all(gallery, common)
+    images = [get(i, gallery, common, 'suffix', ensure_azure=True) for i in args.images] if args.images else all(gallery, common, 'suffix', ensure_azure=True)
+    import json
+    for image in images:
+        print(json.dumps(image, indent=4))
 
     if args.github or os.environ.get('GITHUB_ACTIONS', False):
         import json

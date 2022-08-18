@@ -14,6 +14,7 @@ variable "gallery" {
   type = object({
     name          = string
     resourceGroup = string
+    subscription  = string
   })
   description = "The azure compute gallery to publish the image"
 }

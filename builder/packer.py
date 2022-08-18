@@ -71,14 +71,10 @@ async def get_vars_async(image):
         return DEFAULT_PKR_VARS
 
 
-def save_vars_file(image, sub=None):
-    sub = sub if sub else azure.get_sub()
-
+def save_vars_file(image):
     pkr_vars = get_vars(image)
 
-    auto_vars = {
-        'subscription': sub,
-    }
+    auto_vars = {}
 
     for v in pkr_vars:
         if v in image and image[v]:
@@ -92,14 +88,10 @@ def save_vars_file(image, sub=None):
         json.dump(auto_vars, f, ensure_ascii=False, indent=4, sort_keys=True)
 
 
-async def save_vars_file_async(image, sub=None):
-    sub = sub if sub else await azure.get_sub_async()
-
+async def save_vars_file_async(image):
     pkr_vars = await get_vars_async(image)
 
-    auto_vars = {
-        'subscription': sub,
-    }
+    auto_vars = {}
 
     for v in pkr_vars:
         if v in image and image[v]:
@@ -114,10 +106,8 @@ async def save_vars_file_async(image, sub=None):
 
 
 def save_vars_files(images):
-    sub = azure.get_sub()
-
     for image in images:
-        save_vars_file(image, sub)
+        save_vars_file(image)
 
 
 def init(image):

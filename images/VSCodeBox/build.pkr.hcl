@@ -30,6 +30,7 @@ source "azure-arm" "vm" {
   managed_image_name                = var.name
   managed_image_resource_group_name = var.gallery.resourceGroup
   # packer creates a temporary resource group
+  subscription_id          = var.subscription
   location                 = var.location
   temp_resource_group_name = var.tempResourceGroup
   # OR use an existing resource group
@@ -41,7 +42,7 @@ source "azure-arm" "vm" {
   virtual_network_subnet_name         = var.virtualNetworkSubnet
   virtual_network_resource_group_name = var.virtualNetworkResourceGroup
   shared_image_gallery_destination {
-    subscription         = var.subscription
+    subscription         = var.gallery.subscription
     gallery_name         = var.gallery.name
     resource_group       = var.gallery.resourceGroup
     image_name           = var.name

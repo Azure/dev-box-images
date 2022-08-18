@@ -22,30 +22,30 @@ def error_exit(message):
 
 def _img_def_show_cmd(image):
     return ['sig', 'image-definition', 'show', '--only-show-errors', '-g', image['gallery']['resourceGroup'],
-            '-r', image['gallery']['name'], '-i', image['name']]
+            '-r', image['gallery']['name'], '-i', image['name'], '--subscription', image['gallery']['subscription']]
 
 
 def _img_ver_show_cmd(image):
     return ['sig', 'image-version', 'show', '--only-show-errors', '-g', image['gallery']['resourceGroup'],
-            '-r', image['gallery']['name'], '-i', image['name'], '-e', image['version']]
+            '-r', image['gallery']['name'], '-i', image['name'], '-e', image['version'], '--subscription', image['gallery']['subscription']]
 
 
 def _img_def_create_cmd(image):
     return ['sig', 'image-definition', 'create', '--only-show-errors', '-g', image['gallery']['resourceGroup'],
             '-r', image['gallery']['name'], '-i', image['name'], '-p', image['publisher'], '-f', image['offer'],
             '-s', image['sku'], '--os-type', image['os'], '--description', image['description'],
-            '--hyper-v-generation', 'V2', '--features', 'SecurityType=TrustedLaunch']
+            '--hyper-v-generation', 'V2', '--features', 'SecurityType=TrustedLaunch', '--subscription', image['gallery']['subscription']]
 
 
 def _img_builder_cmd(image, command):
-    return ['image', 'builder', command, '-g', image['gallery']['resourceGroup'], '-n', image['name']]
+    return ['image', 'builder', command, '-g', image['gallery']['resourceGroup'], '-n', image['name'], '--subscription', image['gallery']['subscription']]
 
 
 def _img_builder_deploy_cmd(image):
     bicep_file = os.path.join(image['path'], 'image.bicep')
     params_file = '@' + os.path.join(image['path'], IMAGE_PARAMS_FILE)
     return ['deployment', 'group', 'create', '-n', image['name'], '-g', image['gallery']['resourceGroup'],
-            '-f', bicep_file, '-p', params_file, '--no-prompt']
+            '-f', bicep_file, '-p', params_file, '--no-prompt', '--subscription', image['gallery']['subscription']]
 
 
 def _parse_command(command):

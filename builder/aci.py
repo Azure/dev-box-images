@@ -65,11 +65,11 @@ def main(names, params, suffix, skip_build=False):
 
                 if 'tempResourceGroup' in image and image['tempResourceGroup']:
                     group_name = image['tempResourceGroup']
-                    group = az.cli(['group', 'create', '-n', image['tempResourceGroup'], '-l', image['location']])
+                    group = az.cli(['group', 'create', '-n', image['tempResourceGroup'], '-l', image['location'], '--subscription', image['subscription']])
                 else:
                     group_name = image['buildResourceGroup']
 
-                group = az.cli(['deployment', 'group', 'create', '-n', image['name'], '-g', group_name, '-f', bicep_file, '-p', params_file, '--no-prompt'])
+                group = az.cli(['deployment', 'group', 'create', '-n', image['name'], '-g', group_name, '-f', bicep_file, '-p', params_file, '--no-prompt', '--subscription', image['subscription']])
 
     if skip_build:
         log.warning('Skipping build execution because --skip-build was provided')
@@ -90,11 +90,11 @@ async def _process_image_async(name, params, gallery, common, suffix, skip_build
 
             if 'tempResourceGroup' in image and image['tempResourceGroup']:
                 group_name = image['tempResourceGroup']
-                group = await az.cli_async(['group', 'create', '-n', image['tempResourceGroup'], '-l', image['location']])
+                group = await az.cli_async(['group', 'create', '-n', image['tempResourceGroup'], '-l', image['location'], '--subscription', image['subscription']])
             else:
                 group_name = image['buildResourceGroup']
 
-            group = await az.cli_async(['deployment', 'group', 'create', '-n', image['name'], '-g', group_name, '-f', bicep_file, '-p', params_file, '--no-prompt'])
+            group = await az.cli_async(['deployment', 'group', 'create', '-n', image['name'], '-g', group_name, '-f', bicep_file, '-p', params_file, '--no-prompt', '--subscription', image['subscription']])
 
     if skip_build:
         log.warning('Skipping build execution because --skip-build was provided')
