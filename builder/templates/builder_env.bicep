@@ -20,7 +20,6 @@ var vnetName = '${baseName}-vnet'
 
 var builderGroupAssignmentId = guid('groupreader${resourceGroup().id}${baseName}${builderPrincipalId}')
 var builderSecretsAssignmentId = guid('kvsecretofficer${resourceGroup().id}${keyVaultName}${builderPrincipalId}')
-// var builderStorageAssignmentId = guid('kvsecretofficer${resourceGroup().id}${keyVaultName}${builderPrincipalId}')
 
 var roleIdBase = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions'
 
