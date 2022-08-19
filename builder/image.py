@@ -9,15 +9,16 @@ import azure
 import loggers
 import syaml
 
-IMAGE_ALLOWED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder', 'description', 'buildResourceGroup',
-                            'keyVault', 'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup', 'subscription']
 IMAGE_REQUIRED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder']
+IMAGE_ALLOWED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder',
+                            'description', 'buildResourceGroup', 'keyVault', 'virtualNetwork', 'virtualNetworkSubnet',
+                            'virtualNetworkResourceGroup', 'subscription']
 
-COMMON_ALLOWED_PROPERTIES = ['publisher', 'offer', 'replicaLocations', 'builder', 'buildResourceGroup',
-                             'keyVault', 'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup', 'subscription']
+COMMON_ALLOWED_PROPERTIES = ['publisher', 'offer', 'replicaLocations', 'builder', 'buildResourceGroup', 'keyVault',
+                             'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup', 'subscription']
 
-GALLERY_ALLOWED_PROPERTIES = ['name', 'resourceGroup', 'subscription']
 GALLERY_REQUIRED_PROPERTIES = ['name', 'resourceGroup']
+GALLERY_ALLOWED_PROPERTIES = ['name', 'resourceGroup', 'subscription']
 
 BUILDER_NAMES = ['packer', 'azure']
 BUILDER_NAME_VARIATIONS_PACKER = ['packer', 'pkr']

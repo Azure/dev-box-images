@@ -1,14 +1,42 @@
-# This file contains common properties to be shared across all individual image.yml files
-# If a image.yml file also contains a value for property in this file, the value in the image.yml
-# file will overwrite the value in this file
+# This file contains common properties to be shared across all individual image's image.yml files
+# If an individual image's image.yml file also contains a value for property set in this file, the value in the
+# that image's image.yml file will overwrite the value in this file
+
+#  Optional properties:
+#
+# - publisher: (string)
+#       The name of the gallery image definition publisher.
+# - offer: (string)
+#       The name of the gallery image definition offer
+# - replicaLocations: (array using - notation)
+#       The target regions where the Image Version is going to be replicated to
+# - builder: (string)
+#       Builder to use.  packer or azure. If not specified, packer is used
+# - buildResourceGroup: (string)
+#       Name of an existing resource group to run the build in. If not specified, a temporary one will be created
+# - keyVault: (string)
+#       Name of an existing key vault to use for uploading certificates to the instance to connect. Must be in the same
+#       resource group as buildResourceGroup. If not provided, a temporary on will be created.
+# - virtualNetwork: (string)
+#       Name of a pre-existing virtual network for the VM. This option enables private communication with the VM, no
+#       public IP address is used or provisioned. If not provided, a temporary on will be created.
+# - virtualNetworkSubnet: (string)
+#       Name of a pre-existing subnet in the virtual network provided in virtualNetwork.
+# - virtualNetworkResourceGroup: (string)
+#       Name of the resource group that contains the virtual network provided in virtualNetwork
+# - subscription: (string)
+#       Subscription ID (GUID) of the subscription to use. If not set, the builder will use the default subscription of
+#       the authenticated user of service principal
+
+builder: packer
 publisher: Contoso
 offer: DevBox
 replicaLocations:
   - eastus
   - westeurope
-builder: packer
-# buildResourceGroup: DevBox-Images
-# keyVault: devboximageskv
-# virtualNetwork: devbox-images-vnet
-# virtualNetworkSubnet: default
-# virtualNetworkResourceGroup: DevBox-Images
+buildResourceGroup: Contoso-Images
+keyVault: contosoimageskv
+virtualNetwork: contoso-images-vnet
+virtualNetworkSubnet: default
+virtualNetworkResourceGroup: Contoso-Images
+subscription: 00000000-0000-0000-0000-000000000000
