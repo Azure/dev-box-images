@@ -1,7 +1,8 @@
 @description('Location for the Compute Gallery. If none is provided, the resource group location is used.')
 param location string = resourceGroup().location
 
-param baseName string = 'contoso-images'
+// ex. contoso-images
+param baseName string
 
 @description('The principal id of a service principal used in the image build pipeline. If provided the service principal will be given Owner permissions on the gallery')
 param builderPrincipalId string
