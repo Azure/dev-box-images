@@ -59,7 +59,7 @@ def main(names, params, suffix, skip_build=False):
 
             if not skip_build:
 
-                bicep_file = os.path.join(Path(__file__).resolve().parent, 'builder.bicep')
+                bicep_file = os.path.join(Path(__file__).resolve().parent, 'templates', 'builder.bicep')
                 params_file = '@' + os.path.join(image['path'], BUILDER_PARAMS_FILE)
 
                 if 'tempResourceGroup' in image and image['tempResourceGroup']:
@@ -84,7 +84,7 @@ async def _process_image_async(name, params, gallery, common, suffix, skip_build
 
         if not skip_build:
 
-            bicep_file = os.path.join(Path(__file__).resolve().parent, 'builder.bicep')
+            bicep_file = os.path.join(Path(__file__).resolve().parent, 'templates', 'builder.bicep')
             params_file = '@' + os.path.join(image['path'], BUILDER_PARAMS_FILE)
 
             if 'tempResourceGroup' in image and image['tempResourceGroup']:
