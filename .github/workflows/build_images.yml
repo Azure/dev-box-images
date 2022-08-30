@@ -10,63 +10,67 @@ on:
       - 'images/**'
       - 'scripts/**'
       # - 'builder/**'
-      # - '.github/**'
 
 jobs:
-  prepare:
+  build:
     # runs-on: windows-latest
     runs-on: ubuntu-latest
 
     if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
-    outputs:
-      build: ${{ steps.images.outputs.build }}
-      images: ${{ steps.images.outputs.images }}
+    env:
+      STORAGE_ACCOUNT: contosoimagesstorage
+      SUBNET_ID: /subscriptions/e5f715ae-6c72-4a5c-87c8-495590c34828/resourceGroups/Contoso-Images/providers/Microsoft.Network/virtualNetworks/contoso-images-vnet/subnets/builders
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Get Image Definitions
-        id: images
-        run: python "./builder/image.py"
-
-  build:
-    needs: prepare
-    # runs-on: windows-latest
-    runs-on: ubuntu-latest
-
-    # this is needed to avoid workflow errors in case of an empty matrix
-    if: ${{ needs.prepare.outputs.build == 'true' }}
-
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.images) }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # OR
 
       # - name: Login to Azure
-      #   run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # OR
+      - name: Login to Azure
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Build ${{ matrix.name }} with ${{ matrix.builder }}
-        run: python "./builder/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }}
+      # az cli installs bicep on demand the first time it's used
+      # using the --async argument in the command below simultaniously invokes several commands that use bicep
+      # so if bicep isn't already installed, the all initiate the install which throws a file busy error so we
+      # execute an arbitrary az bicep command here (and get the latest updates in the process)
+      - name: Ensure Bicep
+        run: az bicep upgrade
 
-  # build:
+      - name: Deploy Build ACI Containers
+        run: python "./builder/aci.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
+
+  # prepare:
   #   # runs-on: windows-latest
   #   runs-on: ubuntu-latest
 
   #   if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
-  #   env:
-  #     STORAGE_ACCOUNT: devboximagesstorage
-  #     SUBNET_ID: /subscriptions/e5f715ae-6c72-4a5c-87c8-495590c34828/resourceGroups/DevBox-Images/providers/Microsoft.Network/virtualNetworks/devbox-images-vnet/subnets/builders
+  #   outputs:
+  #     build: ${{ steps.images.outputs.build }}
+  #     images: ${{ steps.images.outputs.images }}
+
+  #   steps:
+  #     - uses: actions/checkout@v2
+
+  #     - name: Get Image Definitions
+  #       id: images
+  #       run: python "./builder/image.py"
+
+  # build:
+  #   needs: prepare
+  #   # runs-on: windows-latest
+  #   runs-on: ubuntu-latest
+
+  #   # this is needed to avoid workflow errors in case of an empty matrix
+  #   if: ${{ needs.prepare.outputs.build == 'true' }}
+
+  #   strategy:
+  #     fail-fast: false
+  #     matrix: ${{ fromJson(needs.prepare.outputs.images) }}
 
   #   steps:
   #     - uses: actions/checkout@v2
@@ -81,6 +85,5 @@ jobs:
   #     - name: Login to Azure
   #       run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
-  #     - name: Deploy Build ACI Containers
-  #       id: images
-  #       run: python "./builder/aci.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
+  #     - name: Build ${{ matrix.name }} with ${{ matrix.builder }}
+  #       run: python "./builder/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }}
