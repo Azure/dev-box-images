@@ -4,7 +4,7 @@ templates
 templates/
 
 builder.bicep
-builder_env.bicep
+builder_sandbox.bicep
 
 aci.py
 repos.py
