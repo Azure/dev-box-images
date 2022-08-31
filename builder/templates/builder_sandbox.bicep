@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 @description('Location for the resources. If none is provided, the resource group location is used.')
 param location string = resourceGroup().location
 

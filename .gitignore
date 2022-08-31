@@ -24,3 +24,5 @@ builder.parameters.json
 teststuff.py
 
 __pycache__/
+
+local.bicep
