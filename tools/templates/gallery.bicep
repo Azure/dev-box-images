@@ -1,14 +1,24 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 @description('Location for the Compute Gallery. If none is provided, the resource group location is used.')
 param location string = resourceGroup().location
 
+@minLength(2)
+@maxLength(80)
 @description('The name of the Azure Compute Gallery.')
 param name string
 
 @description('The resource ID of the DevCenter.')
-param devCenterId string
+param devCenterId string = ''
 
+@minLength(36)
+@maxLength(36)
 @description('The principal id of a service principal used in the image build pipeline. If provided the service principal will be given Owner permissions on the gallery')
-param builderPrincipalId string
+param builderPrincipalId string = ''
+
+@description('Tags to apply to the resources')
+param tags object = {}
 
 var windows365PrinicalId = 'df65ee7f-8ea9-481d-a20f-e7e23bcf25ed'
 
@@ -22,6 +32,7 @@ var contributorRoleId = '/subscriptions/${subscription().subscriptionId}/provide
 resource gallery 'Microsoft.Compute/galleries@2022-01-03' = {
   name: name
   location: location
+  tags: tags
 }
 
 // Give Reader permission to the Windows 365 first-party SP
@@ -84,4 +95,4 @@ module galleryAttach 'galleryAttach.bicep' = if (!empty(devCenterId)) {
   ]
 }
 
-output galleryId string = gallery.id
+output id string = gallery.id

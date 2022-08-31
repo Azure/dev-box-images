@@ -1,9 +1,16 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+@maxLength(63)
 @description('Name of the attached Network Connection in DevCenter. If not provided, the Network Connection name is used.')
 param name string = ''
 
+@minLength(3)
+@maxLength(26)
 @description('Name of the DevCenter.')
 param devCenterName string
 
+@minLength(121)
 @description('The resource ID of the Network Connection.')
 param networkConnectionId string
 

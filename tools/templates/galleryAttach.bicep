@@ -1,9 +1,16 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+@maxLength(63)
 @description('Name of the Gallery in DevCenter. If not provided, the Gallery name is used.')
 param name string = ''
 
+@minLength(3)
+@maxLength(26)
 @description('Name of the DevCenter.')
 param devCenterName string
 
+@minLength(90)
 @description('The resource ID of the backing Azure Compute Gallery.')
 param galleryResourceId string
 
