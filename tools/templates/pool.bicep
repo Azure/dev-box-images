@@ -24,8 +24,8 @@ param devBoxDefinitionName string
 @description('Name of a Network Connection in parent Project of this Pool')
 param networkConnectionName string
 
-@description('Indicates whether owners of Dev Boxes in this pool are added as local administrators on the Dev Box. Default is Enabled')
 @allowed([ 'Disabled', 'Enabled' ])
+@description('Indicates whether owners of Dev Boxes in this pool are added as local administrators on the Dev Box. Default is Enabled')
 param localAdministrator string = 'Enabled'
 
 @description('Tags to apply to the resources')

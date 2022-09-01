@@ -9,7 +9,7 @@ param location string = resourceGroup().location
 @description('Name of the Dev Center')
 param name string
 
-@description('Resource ID of an existing Azure Compute Gallery to use for the Dev Box Definitions.')
+@description('Resource ID of an existing Azure Compute Gallery to attach to the DevCenter.')
 param galleryId string = ''
 
 @description('Tags to apply to the resources')

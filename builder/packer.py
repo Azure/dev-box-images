@@ -11,7 +11,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import azure
 import loggers
 
 AUTO_VARS_FILE = 'vars.auto.pkrvars.json'

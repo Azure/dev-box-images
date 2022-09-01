@@ -10,10 +10,10 @@ param location string = resourceGroup().location
 param name string
 
 @minLength(113)
-@sys.description('The resource ID of the DevCenter.')
+@sys.description('The Resource ID of the DevCenter.')
 param devCenterId string
 
-@sys.description('The resource ID of the DevCenter.')
+@sys.description('The description of the Project.')
 param description string = ''
 
 @sys.description('The principal ids of users to assign the role of DevCenter Project Admin.  Users must either have DevCenter Project Admin or DevCenter Dev Box User role in order to create a Dev Box.')

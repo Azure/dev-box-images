@@ -7,10 +7,11 @@
 param principalId string
 
 @maxLength(80)
-@description('Name of an existing Azure Compute Gallery to use for the Dev Box Definitions.')
+@description('Name of an existing Azure Compute Gallery.')
 param galleryName string
 
 @allowed([ 'Reader', 'Contributor', 'Owner' ])
+@description('The Role to assign.')
 param role string = 'Reader'
 
 var assignmentId = guid('gallery${role}${resourceGroup().id}${galleryName}${principalId}')

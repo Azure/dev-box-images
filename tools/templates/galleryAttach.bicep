@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 @maxLength(63)
-@description('Name of the Gallery in DevCenter. If not provided, the Gallery name is used.')
+@description('Name of the Gallery in DevCenter. If not provided, the Compute Gallery name is used.')
 param name string = ''
 
 @minLength(3)
