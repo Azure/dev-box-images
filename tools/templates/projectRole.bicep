@@ -3,15 +3,16 @@
 
 @minLength(36)
 @maxLength(36)
-@description('The principal id of the Service Principal to assign permissions to the Gallery.')
+@description('The principal id of the User to assign permissions to the Project.')
 param principalId string
 
 @minLength(3)
 @maxLength(63)
-@description('Resource ID of an existing Azure Compute Gallery to use for the Dev Box Definitions.')
+@description('The Project name.')
 param projectName string
 
 @allowed([ 'ProjectAdmin', 'DevBoxUser' ])
+@description('The Role assignment to assign the user. Defaults to DevBoxUser')
 param role string = 'DevBoxUser'
 
 @allowed([ 'Device', 'ForeignGroup', 'Group', 'ServicePrincipal', 'User' ])
