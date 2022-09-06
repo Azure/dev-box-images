@@ -24,7 +24,45 @@ The [templates](templates) folder contains bicep templates that can be used to d
 
 | Script | Description |
 | -------------- | ----------- |
+| [stop-boxes.py](#stop-boxespy) | Stops all Dev Boxes across projects in a DevCenter |
 | [bump-version.py](#bump-versionpy) | Increments the version number in the image.yml files |
+
+## [stop-boxes.py](stop-boxes.py)
+
+#### Summary
+
+Stops all (running) Dev Boxes across projects in a DevCenter. You can optionally specify specific Projects, Pools, or Users to filter which boxes to stop.
+
+**Note: you must be logged in to the Azure CLI, and the script will only delete dev boxes in projects where you have DevCenter Project Admin role assignment.**
+
+#### Arguments
+
+| Argument | Required | Description |
+| -------- | -------- | ----------- |
+| --dev-center \| -dc | True | the devcenter to operate on |
+| --projects \| -p | False | names of projects to stop running boxes. if not specified all projects will be included |
+| --pools | False | names of pools to stop running boxes. if not specified all pools will be included |
+| --users | False | ids of users to stop running boxes. if not specified all users will be included |
+
+#### Examples
+
+##### stop all boxes in a devcenter the patch version on all images
+
+```sh
+python ./stop-boxes.py -dc MyDevCenter
+```
+
+##### stop all boxes in a devcenter for ProjectA and ProjectB
+
+```sh
+python ./stop-boxes.py -dc MyDevCenter --projects ProjectA ProjectB
+```
+
+##### stop all boxes in a devcenter for user 00000000-0000-0000-0000-000000000000
+
+```sh
+python ./stop-boxes.py -dc MyDevCenter --users 00000000-0000-0000-0000-000000000000
+```
 
 ## [bump-version.py](bump-version.py)
 
