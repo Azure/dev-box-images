@@ -1,6 +1,6 @@
-# Dev Box Images
+# Custom Dev Box Images
 
-This repo contains custom images to be used with [Microsoft Dev Box](https://techcommunity.microsoft.com/t5/azure-developer-community-blog/introducing-microsoft-dev-box/ba-p/3412063).  It demonstrates how to create custom images with pre-installed software using [Packer](https://www.packer.io/) and shared them via [Azure Compute Gallery](https://docs.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries).
+This repo contains a Github action to create custom images to be used with [Microsoft Dev Box](https://techcommunity.microsoft.com/t5/azure-developer-community-blog/introducing-microsoft-dev-box/ba-p/3412063).  It demonstrates how to create custom images with pre-installed software using [Packer](https://www.packer.io/) and shared them via [Azure Compute Gallery](https://docs.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries).
 
 See the [workflow file](.github/workflows/build_images.yml) to see how images are built and deployed.
 
@@ -33,14 +33,83 @@ The following software is installed on all images. Use [this form](/../../issues
 - [Az PowerShell module](https://docs.microsoft.com/en-us/powershell/azure/what-is-azure-powershell)
 
 ---
-
-# Usage
+# Overview
+```mermaid
+graph TD
+    A[Setup] --> B(Create Service Principal)
+    B --> C(Create Secrets using Service Principal information)
+    C --> D{Determine Infrastructure access}
+    D --> |No restrictions | E[Azure Image builder]
+    D --> |Unable to dynamically create storage  | F[Packer native]
+    D --> |Unable to dynamically create storage and VMs|G[Zero Trust model]
+    E --> H(No additional action)
+    F --> I(Create storage account)
+    G --> J(Deploy builder_sandbox.bicep)
+    H --> K(Update configuration files)
+    I --> K
+    J --> K
+```
+# Requirements
+- [Service Principal with appropriate access on the subscription.](#service-principal)
+- Ability to add resources within the subscription.
+# Setup
 
 To get started, [fork][fork] this repository.
 
 _NOTE: The workflow that builds and publishes the images [is only triggered](.github/workflows/build_images.yml#L8-L10) if files the `/images` or `/scripts` folders change.  After completing the steps below, modify any file within those two folders (like changing the `version` in the `image.yml` files) to initiate a build._
 
-## Azure Compute Gallery
+## Create Service Principal
+
+The solution requires a Service Principal to provision resources associated with create a new image (VMs, etc.).  See the [Azure Login action docs](create-sp) for instructions on how to create.
+
+**IMPORTANT: Once you create a new Service Principal you must [assign it the following roles in RBAC][assign-rbac]:**:
+
+- **Contributor** on the subscription used to provision resources, **OR**
+- **Owner** on a specific (existing) resource group (see [Resource Group Usage](#resource-group-usage) below) and **Contributor** on the [Azure Compute Gallery][az-gallery] (and its resource group)
+
+### Secrets
+In your fork create three new [repository secrets](repo-secret)[...](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with a value that contains credentials for the service principal created above. For details on how to create these credentials, see the [Azure Login action docs](create-sp).
+
+Example:
+
+```sh
+az ad sp create-for-rbac --role contributor --scopes /subscriptions/<GUID> -n MyUniqueName
+```
+
+output:
+
+```json
+{
+  "appId": "<GUID>",
+  "displayName": "<STRING>",
+  "password": "<STRING>",
+  "tenant": "<GUID>"  
+}
+```
+#### `AZURE_CLIENT_ID`
+Set to the appId value from the output above.
+#### `AZURE_CLIENT_SECRET`
+Set to the password value from the output above.
+#### `AZURE_TENANT_ID`
+Set to the tenant value from the output above.
+
+## Determine infrastructure access
+Depending on your needs there are three different ways to setup the image builder. Here are the details on each configuration. 
+
+### Azure Image builder (AIB)
+Simplest to setup, but requires create Azure resources like storage accounts, and virtual machines within the AIB.  Policies on the subscription may not allow or restrict these types of resources, if so try the Packer native approach. 
+
+**Azure Image Builder Workflow**
+```mermaid
+graph TD
+    A[Azure Image Builder ] --> |Login to Azure| B(Create AIB image template)
+    B --> C(Create resource group, if missing)
+    C --> D(Create image using AIB)
+    D --> |AIB/Packer creates storage and other resources|E(Saved to gallery)
+```
+
+#### Required Configuration Azure Image Builder
+##### Azure Compute Gallery - Gallery.yml
 
 Open the [`gallery.yml`](gallery.yml) file in the root of the repository and update following properties to match your [Azure Compute Gallery][az-gallery]:
 
@@ -54,50 +123,119 @@ name: MyGallery
 resourceGroup: MyGallery-RG
 ```
 
-## Service Principal
+##### Images - Images.yml
+ 
+Open the [images.yml](images/images.yml) file in the images folder and update the following properties to match your configuration.
 
-The solution requires a Service Principal to provision resources associated with create a new image (VMs, etc.).  See the [Azure Login action docs](create-sp) for instructions on how to create.
+- [`builder`](images/images.yml#L31) - the type of builder `azure`.
+- [`buildResourceGroup`](images/images.yml#37) - optional - the existing resource group name.
 
-**IMPORTANT: Once you create a new Service Principal you must [assign it the following roles in RBAC][assign-rbac]:**:
+```yaml
+builder: azure
+buildResourceGroup: MyCurrentResourceGroup
+```
 
-- **Contributor** on the subscription used to provision resources, **OR**
-- **Owner** on a specific (existing) resource group (see [Resource Group Usage](#resource-group-usage) below) and **Contributor** on the [Azure Compute Gallery][az-gallery] (and its resource group)
 
-### `AZURE_CREDENTIALS`
+### Packer native
+This configuration requires more initial setup of creating the storage account before the action.  
 
-In your fork create a new [repository secret](repo-secret) named `AZURE_CREDENTIALS` with a value that contains credentials for the service principal created above. For details on how to create these credentials, see the [Azure Login action docs](create-sp).
+**Packer Native Workflow**
+```mermaid
+graph TD
+    A[Packer Native] --> |Login to Azure| B(Create Packer image template)
+    B --> C(Create resource group, if missing)
+    C --> D(Create image using Packer)    
+    D --> |Use existing storage account, creates other resources|E(Saved to gallery)
+```
+
+#### Required Configuration Packer Native
+##### Azure Compute Gallery - Gallery.yml
+
+Open the [`gallery.yml`](gallery.yml) file in the root of the repository and update following properties to match your [Azure Compute Gallery][az-gallery]:
+
+- [`name`](gallery.yml#L1) - the name of your Azure Compute Gallery
+- [`resourceGroup`](gallery.yml#L2) - The resource group that contains your Azure Compute Gallery
 
 Example:
 
-```sh
-az ad sp create-for-rbac --sdk-auth --role contributor --scopes /subscriptions/<GUID> -n MyUniqueName
+```yaml
+name: MyGallery
+resourceGroup: MyGallery-RG
 ```
 
-output:
+##### Images - Images.yml
+ 
+Open the [images.yml](images/images.yml) file in the images folder and update the following properties to match your configuration.
 
-```json
-{
-  "clientId": "<GUID>",
-  "clientSecret": "<STRING>",
-  "subscriptionId": "<GUID>",
-  "tenantId": "<GUID>"
-  (...)
-}
+- [`builder`](images/images.yml#L31) - the type of builder type `Packer`.
+- [`buildResourceGroup`](images/images.yml#37) - optional - the existing resource group name.
+
+```yaml
+builder: packer
+buildResourceGroup: MyCurrentResourceGroup
 ```
 
-**IMPORTANT: when pasting in the value for `AZURE_CREDENTIALS`, remove all line breaks so that the JSON is on a single line. Otherwise GitHub will assume subscriptionId and tenantId are secrets and prevent them from being share across workflow jobs.**
+
+### Zero trust model
+This configuration is designed for those subscriptions in a highly restricted subscription.  This can be setup using the [builder_sandbox.bicep](builder\templates\builder_sandbox.bicep)
+
+
+**Zero Trust Workflow**
+```mermaid
+graph TD
+    A[Zero Trust Model] --> |Login to Azure| B(Create image template)
+    B --> C(Create resource group, if missing)
+    C --> D(Create Container instances for each image)
+    D --> |Containers execute packer to create images and save to gallery |E(Saved to gallery)
+```
+
+#### Required Configuration Zero Trust 
+##### Azure Compute Gallery - Gallery.yml
+
+Open the [`gallery.yml`](gallery.yml) file in the root of the repository and update following properties to match your [Azure Compute Gallery][az-gallery]:
+
+- [`name`](gallery.yml#L1) - the name of your Azure Compute Gallery
+- [`resourceGroup`](gallery.yml#L2) - The resource group that contains your Azure Compute Gallery
 
 Example:
 
-```json
-{ "clientId": "<GUID>", "clientSecret": "<GUID>", "subscriptionId": "<GUID>", "tenantId": "<GUID>", (...) }
+```yaml
+name: MyGallery
+resourceGroup: MyGallery-RG
 ```
 
-## Resource Group Usage
+##### Images - Images.yml
+ 
+Open the [images.yml](images/images.yml) file in the images folder and update the following properties to match your configuration.
 
-This solution uses Packer's [Azure builder][az-builder] which can either provision resources into a new resource group that it controls (default) or an existing one. The advantage of using a packer defined resource group is that failed resource cleanup is easier because you can simply remove the entire resource group, however this means that the provided credentials must have permission to create and remove resource groups. By using an existing resource group you can scope the provided credentials to just this group, however failed builds are more likely to leave unused artifacts.
+- [`builder`](images/images.yml#L31) - the type of builder type `Packer`.
+- [`buildResourceGroup`](images/images.yml#L37) - the existing resource group name.
+- [`keyVault`](images/images.yml#L38) - generated KeyVault
+- [`virtualNetwork`](images/images.yml#L39) - generated virtual network resource id.
+- [`virtualNetworkResourceGroup`](images/images.yml#L41) - Resource group where the virtual network exists.
+- [`subscription`](images/images.yml#L42) - Subscription id.
+
+```yaml
+builder: packer
+buildResourceGroup: MyBuildRG
+keyVault: mykeyvaultgenerated
+virtualNetwork: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myvnetresourcegroup/providers/Microsoft.Network/virtualNetworks/myvnet
+virtualNetworkResourceGroup: myvnetresourcegroup
+subscription: 00000000-0000-0000-0000-000000000000
+```
+#### Action - Build_Images.yml
+Open the ['build_images.yml](.github/workflows/build_images.yml) file in the .github filder and update the properties to match your configuration
+
+
+
+
+## Additional information
+### Resource Groups
+
+This solution uses either Packer's [Azure builder][az-builder] which can either provision resources into a new resource group that it controls (default) or an existing one. The advantage of using a packer defined resource group is that failed resource cleanup is easier because you can simply remove the entire resource group, however this means that the provided credentials must have permission to create and remove resource groups. By using an existing resource group you can scope the provided credentials to just this group, however failed builds are more likely to leave unused artifacts.
 
 To use an existing resource group you **must** provide a value for `buildResourceGroup` in the images `image.yml` file.
+
 
 # Contributing
 
