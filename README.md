@@ -130,11 +130,12 @@ Open the [images.yml](images/images.yml) file in the images folder and update th
 - [`builder`](images/images.yml#L31) - the type of builder `azure`.
 - [`buildResourceGroup`](images/images.yml#37) - optional - the existing resource group name.
 
+Example:
+
 ```yaml
 builder: azure
 buildResourceGroup: MyCurrentResourceGroup
 ```
-
 
 ### Packer native
 This configuration requires more initial setup of creating the storage account before the action.  
@@ -169,6 +170,8 @@ Open the [images.yml](images/images.yml) file in the images folder and update th
 
 - [`builder`](images/images.yml#L31) - the type of builder type `Packer`.
 - [`buildResourceGroup`](images/images.yml#37) - optional - the existing resource group name.
+
+Example:
 
 ```yaml
 builder: packer
@@ -210,10 +213,12 @@ Open the [images.yml](images/images.yml) file in the images folder and update th
 
 - [`builder`](images/images.yml#L31) - the type of builder type `Packer`.
 - [`buildResourceGroup`](images/images.yml#L37) - the existing resource group name.
-- [`keyVault`](images/images.yml#L38) - generated KeyVault
-- [`virtualNetwork`](images/images.yml#L39) - generated virtual network resource id.
+- [`keyVault`](images/images.yml#L38) - KeyVault
+- [`virtualNetwork`](images/images.yml#L39) - Virtual network resource id.
 - [`virtualNetworkResourceGroup`](images/images.yml#L41) - Resource group where the virtual network exists.
 - [`subscription`](images/images.yml#L42) - Subscription id.
+
+Example:
 
 ```yaml
 builder: packer
@@ -223,11 +228,18 @@ virtualNetwork: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGrou
 virtualNetworkResourceGroup: myvnetresourcegroup
 subscription: 00000000-0000-0000-0000-000000000000
 ```
-#### Action - Build_Images.yml
-Open the ['build_images.yml](.github/workflows/build_images.yml) file in the .github filder and update the properties to match your configuration
+##### Action - Build_Images.yml
+Open the ['build_images.yml](.github/workflows/build_images.yml) file in the .github folder and update the properties to match your configuration.  Comment or remove the Prepare and Build jobs and uncomment the BuildContainers job.
 
+- [`STORAGE_ACCOUNT`](.github/workflows/build_images.yml#L23) - Storage account name
+- [`SUBNET_ID`](.github/workflows/build_images.yml#L24) - Virtual network subnet id
 
+Example:
 
+```yml
+STORAGE_ACCOUNT: contosoimagesstorage
+SUBNET_ID: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Contoso-Images/providers/Microsoft.Network/virtualNetworks/contoso-images-vnet/subnets/builders
+```
 
 ## Additional information
 ### Resource Groups

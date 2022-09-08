@@ -9,81 +9,71 @@ on:
     paths:
       - 'images/**'
       - 'scripts/**'
-      # - 'builder/**'
 
 jobs:
-  build:
-    # runs-on: windows-latest
-    runs-on: ubuntu-latest
 
-    if: "!contains(join(github.event.commits.*.message), '+nobuild')"
+  # Build step to use container instances with Packer to create the custom images.  Zero Trust Model
+  #buildContainers:
+    
+  #  runs-on: ubuntu-latest
 
-    env:
-      STORAGE_ACCOUNT: contosoimagesstorage
-      SUBNET_ID: /subscriptions/e5f715ae-6c72-4a5c-87c8-495590c34828/resourceGroups/Contoso-Images/providers/Microsoft.Network/virtualNetworks/contoso-images-vnet/subnets/builders
+  #  if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
-    steps:
-      - uses: actions/checkout@v2
+  #  env:
+  #    STORAGE_ACCOUNT: contosoimagesstorage
+  #    SUBNET_ID: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/Contoso-Images/providers/Microsoft.Network/virtualNetworks/contoso-images-vnet/subnets/builders
 
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-      # OR
-      - name: Login to Azure
-        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+  #  steps:
+  #    - uses: actions/checkout@v2
+
+  #    - name: Login to Azure
+  #      run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
       # az cli installs bicep on demand the first time it's used
-      # using the --async argument in the command below simultaniously invokes several commands that use bicep
+      # using the --async argument in the command below simultaneously invokes several commands that use bicep
       # so if bicep isn't already installed, the all initiate the install which throws a file busy error so we
       # execute an arbitrary az bicep command here (and get the latest updates in the process)
-      - name: Ensure Bicep
-        run: az bicep upgrade
+  #    - name: Ensure Bicep
+  #      run: az bicep upgrade
 
-      - name: Deploy Build ACI Containers
-        run: python "./builder/aci.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
+  #    - name: Deploy Build ACI Containers
+  #      run: python "./builder/aci.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
 
-  # prepare:
-  #   # runs-on: windows-latest
-  #   runs-on: ubuntu-latest
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  #   if: "!contains(join(github.event.commits.*.message), '+nobuild')"
+  # Build step to use Azure Image builder or Packer natively to create the custom images.
+   prepare:
+     runs-on: ubuntu-latest
 
-  #   outputs:
-  #     build: ${{ steps.images.outputs.build }}
-  #     images: ${{ steps.images.outputs.images }}
+     if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
-  #   steps:
-  #     - uses: actions/checkout@v2
+     outputs:
+       build: ${{ steps.images.outputs.build }}
+       images: ${{ steps.images.outputs.images }}
 
-  #     - name: Get Image Definitions
-  #       id: images
-  #       run: python "./builder/image.py"
+     steps:
+       - uses: actions/checkout@v2
 
-  # build:
-  #   needs: prepare
-  #   # runs-on: windows-latest
-  #   runs-on: ubuntu-latest
+       - name: Get Image Definitions
+         id: images
+         run: python "./builder/image.py"
 
-  #   # this is needed to avoid workflow errors in case of an empty matrix
-  #   if: ${{ needs.prepare.outputs.build == 'true' }}
+   build:
+     needs: prepare
+     runs-on: ubuntu-latest
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix: ${{ fromJson(needs.prepare.outputs.images) }}
+     # this is needed to avoid workflow errors in case of an empty matrix
+     if: ${{ needs.prepare.outputs.build == 'true' }}
 
-  #   steps:
-  #     - uses: actions/checkout@v2
+     strategy:
+       fail-fast: false
+       matrix: ${{ fromJson(needs.prepare.outputs.images) }}
 
-  #     # - name: Login to Azure
-  #     #   uses: azure/login@v1
-  #     #   with:
-  #     #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+     steps:
+       - uses: actions/checkout@v2
 
-  #     # OR
+       - name: Login to Azure
+         run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
-  #     - name: Login to Azure
-  #       run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-
-  #     - name: Build ${{ matrix.name }} with ${{ matrix.builder }}
-  #       run: python "./builder/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }}
+       - name: Build ${{ matrix.name }} with ${{ matrix.builder }}
+         run: python "./builder/build.py" --suffix ${{ github.run_number }} --images ${{ matrix.name }}
