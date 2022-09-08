@@ -1,2 +1,4 @@
+# This file contains the name and the resource group of the Azure Compute Gallery (formerly Shared Image Gallery) where the custom images will be stored.
+# This gallery will need to be attached to the DevCenter to create dev box definitions.
 name: Contoso
 resourceGroup: Contoso-Gallery
