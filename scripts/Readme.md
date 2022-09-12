@@ -2,5 +2,55 @@
 The scripts folder contains the scripts to install or configure different software or components on the custom images.  These scripts will be used in the different images in the [`images folder`](/images/).
 
 ## Script details
-- ['Clone-Repo`](/scripts/Clone-Repo.ps1): Clone a repository to the machine.'
-- [`Disable-AutoLogon`]
+- [`Clone-Repo`](/scripts/Clone-Repo.ps1): Clone a repository to the machine.'
+    - `Windows`
+    - Clones a Github repository to the local drive (C:\Repos).
+    - Requires: Repo Url, Keyvault secret with Github secret.
+- [`Disable-AutoLogon`](/scripts/Disable-AutoLogon.ps1)
+    - `Windows`
+    - Change registry keys to disable auto logon
+- [`Enable-AutoLogon`](/scripts/Enable-AutoLogon.ps1)
+    - `Windows`
+    - Change registry key to enable auto logon
+- [`Generalize-VM`](/scripts/Generalize-VM.ps1)
+    - `Windows`
+    - Run sysprep in generalize mode
+- [`Install-AzPsModule`](/scripts/Install-AzPsModule.ps1)
+    - `Windows`
+    - Install Azure Powershell module for all users.
+- [`Install-AzureCLI`](/scripts/Instal-AzureCLI.ps1)
+    - `Windows`
+    - Install Azure CLI
+- [`Install-Chocolatey`](/scripts/Install-Chocolatey.ps1)
+    - `Windows`
+    - Install chocolatey
+- [`Install-DotNet`](/scripts/Install-DotNet.ps1)
+    - `Windows`
+    - Install Dot NET
+- [`Install-Git`](/scripts/Install-Git.ps1)
+    - `Windows`
+    - Use Chocolatey to install Git
+- [`Install-GitHub-CLI`](/scripts/Install-GitHub-CLI.ps1)
+    - `Windows`
+    - Install GitHub CLI
+- [`Install-GitHubDesktop`](/scripts/Install-GitHubDesktop.ps1)
+    - `Windows`
+    - Install GitHub Desktop
+- [`Install-HyperV`](/scripts/Install-HyperV.ps1)
+    - `Windows`
+    - Enable Hyper-V feature
+- [`Install-PsModules`](/scripts/Install-PsModules.ps1)
+    - `Windows`
+    - Install a set of PowerShell modules - MarkdownPS, PowerShellGet, PSScriptAnalyzer, and Microsoft.Graph
+- [`Install-Python`](/scripts/Install-Python.ps1)
+    - `Windows`
+    - Install Python for all users.
+- [`Install-VS2022`](/scripts/Install-VS2022.ps1)
+    - `Windows`
+    - Install Visual Studio 2022 with Azure, Web, Node, Python, and Managed workloads
+- [`Install-VSCode`](/scripts/Install-VSCode.ps1)
+    - `Windows`
+    - Install VSCode
+- [`Set-Theme`](/scripts/Set-Theme.ps1)
+    - `Windows`
+    - Set Windows Dark theme
