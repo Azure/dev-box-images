@@ -38,7 +38,7 @@ The following software is installed on all images. Use [this form](/../../issues
 graph TD
     A[Setup] --> B(Create Service Principal)
     B --> C(Create Secrets using Service Principal information)
-    C --> D{Determine Infrastructure access}
+    C --> D{Determine Infrastructure needs}
     D --> |No restrictions | E[Azure Image builder]
     D --> |Unable to dynamically create storage  | F[Packer native]
     D --> |Unable to dynamically create storage and VMs|G[Zero Trust model]
@@ -102,10 +102,10 @@ Simplest to setup, but requires create Azure resources like storage accounts, an
 **Azure Image Builder Workflow**
 ```mermaid
 graph TD
-    A[Azure Image Builder ] --> |Login to Azure| B(Create AIB image template)
+    A[Azure Image Builder - build.py ] --> B(Start Github action)
     B --> C(Create resource group, if missing)
-    C --> D(Create image using AIB)
-    D --> |AIB/Packer creates storage and other resources|E(Saved to gallery)
+    C --> |Generate custom files for each image| D(Deploy custom vms - image.bicep)
+    D --> |Custom scripts are deployed to vm |E(Image saved to gallery)
 ```
 
 #### Required Configuration Azure Image Builder
@@ -143,10 +143,10 @@ This configuration requires more initial setup of creating the storage account b
 **Packer Native Workflow**
 ```mermaid
 graph TD
-    A[Packer Native] --> |Login to Azure| B(Create Packer image template)
+    A[Packer Native - build.py ] --> B(Start Github action)
     B --> C(Create resource group, if missing)
-    C --> D(Create image using Packer)    
-    D --> |Use existing storage account, creates other resources|E(Saved to gallery)
+    C --> |Generate custom files for each image| D(Execute Packer)
+    D --> |Creates the vm with custom scripts |E(Image saved to gallery)
 ```
 
 #### Required Configuration Packer Native
@@ -186,10 +186,10 @@ This configuration is designed for those subscriptions in a highly restricted su
 **Zero Trust Workflow**
 ```mermaid
 graph TD
-    A[Zero Trust Model] --> |Login to Azure| B(Create image template)
-    B --> C(Create resource group, if missing)
-    C --> D(Create Container instances for each image)
-    D --> |Containers execute packer to create images and save to gallery |E(Saved to gallery)
+    A[Zero Trust Model - aci.py] --> B(Manually create private infrastructure)
+    B --> | Creates storage, keyvault, private vnet, and roles - build_sandbox.bicep | C(Start Github action)
+    C --> | Each image creates a container connected to private vnet, mounts the repo, and add storage - builder.bicep| D(Packer in container executes)
+    D --> | Vms created with custom scripts | E(Image saved to gallery)
 ```
 
 #### Required Configuration Zero Trust 
