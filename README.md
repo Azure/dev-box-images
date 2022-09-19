@@ -94,7 +94,10 @@ Set to the password value from the output above.
 Set to the tenant value from the output above.
 
 ## Determine infrastructure access
-Depending on your needs there are three different ways to setup the image builder. Here are the details on each configuration. 
+Depending on your needs there are three different ways to setup the image builder. Here are the details on each configuration. The different configurations are for specific requirements in the Azure subscription.
+- For the Azure Image Builder
+- Packer Native
+- Zero Trust
 
 ### Azure Image builder (AIB)
 Simplest to setup, but requires create Azure resources like storage accounts, and virtual machines within the AIB.  Policies on the subscription may not allow or restrict these types of resources, if so try the Packer native approach. 
