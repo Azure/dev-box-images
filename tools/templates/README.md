@@ -1,6 +1,6 @@
-# Bicep Templates
+# Templates
 
-This folder contains bicep templates that can be used to deploy DevCenter/DevBox and Azure Compute Gallery resources.
+The [templates](templates) folder contains bicep templates that can be used to deploy DevCenter/Dev Box and Azure Compute Gallery resources.
 
 | Template[^sub] | Description |
 | -------------- | ----------- |
@@ -16,7 +16,7 @@ This folder contains bicep templates that can be used to deploy DevCenter/DevBox
 | [projectRole.bicep \*](#projectrolebicep) | Assigns the DevCenter Project Admin or DevCenter Dev Box User role on a Project to a user |
 | [vnet.bicep](#vnetbicep) | Creates a new "vanilla" VNet (this template is not currently used and is provided to simplify the setup of Test environments) |
 
-# Template Reference
+----
 
 ## [devcenter.bicep](devcenter.bicep)
 
@@ -50,8 +50,8 @@ Creates a new Project and optionally assigns the appropriate permissions to Proj
 | Parameter | Required | Type | Description |
 | --------- | -------- | ---- | ----------- |
 | location | False | string | Location of the Dev Center. If none is provided, the resource group location is used. |
-| name | True | string| Name of the Project |
-| devCenterId | True | string| The Resource ID of the DevCenter. |
+| name | True | string | Name of the Project |
+| devCenterId | True | string | The Resource ID of the DevCenter. |
 | description | False | string | The description of the Project. |
 | projectAdmins | False | array | The principal ids of users to assign the role of DevCenter Project Admin.  Users must either have DevCenter Project Admin or DevCenter Dev Box User role in order to create a Dev Box. |
 | devBoxUsers | False | array | The principal ids of users to assign the role of DevCenter Dev Box User.  Users must either have DevCenter Project Admin or DevCenter Dev Box User role in order to create a Dev Box. |
