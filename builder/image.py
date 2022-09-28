@@ -10,27 +10,24 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import azure
+import azure as az
 import loggers
 import syaml
 
-IMAGE_REQUIRED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder']
-IMAGE_ALLOWED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'builder',
-                            'description', 'buildResourceGroup', 'keyVault', 'virtualNetwork', 'virtualNetworkSubnet',
+IMAGE_REQUIRED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations']
+IMAGE_ALLOWED_PROPERTIES = ['publisher', 'offer', 'sku', 'version', 'os', 'replicaLocations', 'description',
+                            'buildResourceGroup', 'keyVault', 'virtualNetwork', 'virtualNetworkSubnet',
                             'virtualNetworkResourceGroup', 'subscription']
 
-COMMON_ALLOWED_PROPERTIES = ['publisher', 'offer', 'replicaLocations', 'builder', 'buildResourceGroup', 'keyVault',
+COMMON_ALLOWED_PROPERTIES = ['publisher', 'offer', 'replicaLocations', 'buildResourceGroup', 'keyVault',
                              'virtualNetwork', 'virtualNetworkSubnet', 'virtualNetworkResourceGroup', 'subscription']
 
 GALLERY_REQUIRED_PROPERTIES = ['name', 'resourceGroup']
 GALLERY_ALLOWED_PROPERTIES = ['name', 'resourceGroup', 'subscription']
 
-BUILDER_NAMES = ['packer', 'azure']
-BUILDER_NAME_VARIATIONS_PACKER = ['packer', 'pkr']
-BUILDER_NAME_VARIATIONS_AZURE = ['azure', 'az', 'aib', 'azureimagebuilder' 'azure-image-builder', 'imagebuilder', 'image-builder']
-
 log = loggers.getLogger(__name__)
 
+# indicates if the script is running in the docker container
 in_builder = os.environ.get('ACI_IMAGE_BUILDER', False)
 
 repo = Path('/mnt/repo') if in_builder else Path(__file__).resolve().parent.parent
@@ -45,6 +42,7 @@ def error_exit(message):
 
 
 def get_gallery() -> dict:
+    '''Get the gallery properties from the gallery.yaml file in the root of the repo'''
     gallery_path = syaml.get_file(repo, 'gallery', required=True)
     gallery = syaml.parse(gallery_path, required=GALLERY_REQUIRED_PROPERTIES, allowed=GALLERY_ALLOWED_PROPERTIES)
 
@@ -57,6 +55,7 @@ def get_gallery() -> dict:
 
 
 def get_common() -> dict:
+    '''Get the common properties from the images.yaml file in the root of the images directory'''
     images_path = syaml.get_file(images_root, 'images', required=False)
 
     if images_path is None:
@@ -81,7 +80,7 @@ def _missing_key_or_value(obj, key):
 
 
 def _pre_validate(image):
-    # validate the image properties without doing any azure stuff
+    '''Validate the image properties without doing any azure stuff'''
     log.info(f'Validating image {image["name"]} (initional)')
 
     if _missing_key_or_value(image, 'name'):
@@ -90,14 +89,11 @@ def _pre_validate(image):
     if _missing_key_or_value(image, 'path'):
         error_exit(f'path was not correctly applied to image object for image {image}')
 
-    if image['builder'] not in ['packer', 'azure']:
-        error_exit(f'image.yaml for {image["name"]} has an invalid builder property value {image["builder"]}')
-
     log.info(f'Image {image["name"]} passed initional validation')
 
 
-def validate(image):
-    # validate the image properties after supplementing azure stuff
+def _validate(image):
+    '''Validate the image properties after supplementing azure stuff'''
     log.info(f'Validating image {image["name"]} (full)')
 
     if _has_key_and_value(image, 'buildResourceGroup') and _has_key_and_value(image, 'tempResourceGroup'):
@@ -128,19 +124,12 @@ def validate(image):
 
 
 def _get(image_name, gallery, common=None) -> dict:
+    '''Get the image properties from the image.yaml file'''
     image_dir = images_root / image_name
     log.info(f'Getting image {image_name} from {image_dir}')
 
     image_path = syaml.get_file(image_dir, 'image', required=True)
     image = syaml.parse(image_path)
-
-    if 'builder' in image and image['builder']:
-        if image['builder'].lower() in BUILDER_NAME_VARIATIONS_AZURE:
-            image['builder'] = 'azure'
-        elif image['builder'].lower() in BUILDER_NAME_VARIATIONS_PACKER:
-            image['builder'] = 'packer'
-    else:
-        image['builder'] = 'packer'
 
     if common:  # merge common properties into image properties
         temp = common.copy()
@@ -172,7 +161,7 @@ def _get(image_name, gallery, common=None) -> dict:
 
 
 def get(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> dict:
-
+    '''Get the image properties from the image.yaml file optionally supplementing with info from azure'''
     image = _get(image_name, gallery, common)
 
     if ensure_azure:
@@ -180,13 +169,13 @@ def get(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> di
         # _get() will set the subscription on the image and the gallery if one was
         # defined on either, if none was defined, set the subscription on the image
         if _missing_key_or_value(image, 'subscription'):
-            sub = azure.get_sub()
+            sub = az.get_sub()
             image['subscription'] = sub
         # and the gallery
         if _missing_key_or_value(image['gallery'], 'subscription'):
             image['gallery']['subscription'] = image['subscription']
 
-        build, image_def = azure.ensure_image_def_version(image)
+        build, image_def = az.ensure_image_def_version(image)
         image['build'] = build
 
         # if buildResourceGroup is not provided we'll provide a name and location for the resource group
@@ -199,13 +188,40 @@ def get(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> di
         for line in json.dumps(image, indent=4).splitlines():
             log.info(line)
 
-        validate(image)
+        _validate(image)
 
     return image
 
 
-async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> dict:
+def all(gallery, common=None, suffix=None, ensure_azure=False) -> list:
+    '''Get all the image properties from the image.yaml files'''
+    common = common if common else get_common()
+    names = image_names()
+    for name in names:
+        log.warning(f'Getting image {name}')
+    images = [get(i, gallery, common, suffix, ensure_azure) for i in image_names()]
+    return images
 
+
+def image_names() -> list:
+    '''Get the list of image names from the images directory'''
+    names = []
+
+    # walk the images directory and find all the image.yml/image.yaml files
+    for dirpath, dirnames, files in os.walk(images_root):
+        # os.walk includes the root directory (i.e. repo/images) so we need to skip it
+        if not images_root.samefile(dirpath) and Path(dirpath).parent.samefile(images_root):
+            names.append(Path(dirpath).name)
+
+    return names
+
+# ----------------
+# async functions
+# ----------------
+
+
+async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=False) -> dict:
+    '''Get the image properties from the image.yaml file optionally supplementing with info from azure'''
     image = _get(image_name, gallery, common)
 
     if ensure_azure:
@@ -213,13 +229,13 @@ async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=
         # _get() will set the subscription on the image and the gallery if one was
         # defined on either, if none was defined, set the subscription on the image
         if _missing_key_or_value(image, 'subscription'):
-            sub = await azure.get_sub_async()
+            sub = await az.get_sub_async()
             image['subscription'] = sub
         # and the gallery
         if _missing_key_or_value(image['gallery'], 'subscription'):
             image['gallery']['subscription'] = image['subscription']
 
-        build, image_def = await azure.ensure_image_def_version_async(image)
+        build, image_def = await az.ensure_image_def_version_async(image)
         image['build'] = build
 
         # if buildResourceGroup is not provided we'll provide a name and location for the resource group
@@ -232,37 +248,15 @@ async def get_async(image_name, gallery, common=None, suffix=None, ensure_azure=
         for line in json.dumps(image, indent=4).splitlines():
             log.info(line)
 
-        validate(image)
+        _validate(image)
 
     return image
 
 
-def all(gallery, common=None, suffix=None, ensure_azure=False) -> list:
-    common = common if common else get_common()
-    names = image_names()
-    for name in names:
-        log.warning(f'Getting image {name}')
-    images = [get(i, gallery, common, suffix, ensure_azure) for i in image_names()]
-    return images
-
-
-def image_names() -> list:
-    names = []
-
-    # walk the images directory and find all the image.yml/image.yaml files
-    for dirpath, dirnames, files in os.walk(images_root):
-        # os.walk includes the root directory (i.e. repo/images) so we need to skip it
-        if not images_root.samefile(dirpath) and Path(dirpath).parent.samefile(images_root):
-            names.append(Path(dirpath).name)
-
-    return names
-
-
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='generates the matrix for fan out builds in github actions.')
+    parser = argparse.ArgumentParser(description='Get image properties from image.yaml files')
     parser.add_argument('--images', '-i', nargs='*', help='names of images to include. if not specified all images will be')
-    parser.add_argument('--github', action='store_true', help='if specified, set output variables for github actions')
 
     args = parser.parse_args()
 
@@ -271,11 +265,6 @@ if __name__ == '__main__':
 
     # images = [get(i, gallery, common) for i in args.images] if args.images else all(gallery, common)
     images = [get(i, gallery, common, 'suffix', ensure_azure=True) for i in args.images] if args.images else all(gallery, common, 'suffix', ensure_azure=True)
-    import json
+
     for image in images:
         print(json.dumps(image, indent=4))
-
-    if args.github or os.environ.get('GITHUB_ACTIONS', False):
-        import json
-        print("::set-output name=images::{}".format(json.dumps({'include': images})))
-        print("::set-output name=build::{}".format(len(images) > 0))

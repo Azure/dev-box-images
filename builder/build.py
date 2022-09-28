@@ -5,17 +5,15 @@
 
 import argparse
 import asyncio
-import json
-import os
 import sys
 from datetime import datetime, timezone
 
 import azure as az
 import image as img
 import loggers
-import packer
+import repos
 
-is_github = os.environ.get('GITHUB_ACTIONS', False)
+BUILDER_PARAMS_FILE = 'builder.parameters.json'
 
 log = loggers.getLogger(__name__)
 
@@ -25,86 +23,88 @@ def error_exit(message):
     sys.exit(message)
 
 
-def main(names, suffix, skip_build=False):
-
-    gallery = img.get_gallery()
-    common = img.get_common()
-    images = [img.get(n, gallery, common, suffix, ensure_azure=True) for n in names] if names else img.all(gallery, common, suffix, ensure_azure=True)
+def main(gallery, common, names, params, suffix, skip_build=False):
+    if names is None:
+        images = img.all(gallery, common, suffix, ensure_azure=True)
+    else:
+        images = [img.get(n, gallery, common, suffix, ensure_azure=True) for n in names]
 
     for image in images:
 
         if image['build']:
+            params_file = az.save_params_file(image, params, BUILDER_PARAMS_FILE)
 
-            if 'subscription' in image and image['subscription']:
-                az.cli(f'az account set -s {image["subscription"]}')
-
-            if image['builder'] == 'packer':
-                packer.save_vars_file(image)
-
-                if not skip_build:
-                    packer.execute(image)
-
-            elif image['builder'] == 'azure':
-                az.save_params_file(image)
-
-                if not skip_build:
-                    az.create_run_template(image)
-            else:
-                error_exit(f'image.yaml for {image["name"]} has an invalid builder property value {image["builder"]}')
+            if not skip_build:
+                az.deploy_builder(image, params_file)
 
     if skip_build:
         log.warning('Skipping build execution because --skip-build was provided')
 
 
-async def _process_image_async(name, gallery, common, suffix, skip_build):
+# ----------------
+# async functions
+# ----------------
 
-    image = await img.get_async(name, gallery, common, suffix, ensure_azure=True)
 
-    if image['build']:
-        if image['builder'] == 'packer':
-            await packer.save_vars_file_async(image)
+async def main_async(gallery, common, names, params, suffix, skip_build=False):
+    if names is None:
+        names = img.image_names()
+
+    async def _process_image_async(name):
+        image = await img.get_async(name, gallery, common, suffix, ensure_azure=True)
+
+        if image['build']:
+            params_file = az.save_params_file(image, params, BUILDER_PARAMS_FILE)
 
             if not skip_build:
-                await packer.execute_async(image)
+                await az.deploy_builder_async(image, params_file)
 
-        elif image['builder'] == 'azure':
-            az.save_params_file(image)
+        if skip_build:
+            log.warning('Skipping build execution because --skip-build was provided')
 
-            if not skip_build:
-                await az.create_run_template_async(image)
-        else:
-            error_exit(f'image.yaml for {image["name"]} has an invalid builder property value {image["builder"]}')
+    await asyncio.gather(*[_process_image_async(n) for n in names])
 
-    if skip_build:
-        log.warning('Skipping build execution because --skip-build was provided')
-
-    return image
-
-
-async def main_async(names, suffix, skip_build=False):
-    names = names if names else img.image_names()
-
-    gallery = img.get_gallery()
-    common = img.get_common()
-    build_imgs = await asyncio.gather(*[_process_image_async(n, gallery, common, suffix, skip_build) for n in names])
-    # set GitHub output
-    if is_github:
-        print("::set-output name=matrix::{}".format(json.dumps({'include': build_imgs})))
-        print("::set-output name=build::{}".format(len(build_imgs) > 0))
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Build custom images for Microsoft Dev Box using Packer then pubish them to an Azure Compute Gallery.'
                                      'This script asumes the presence of a gallery.yaml file in the root of the repository and image.yaml files in each subdirectory of the /images directory',
-                                     epilog='example: python3 build.py --suffix 22 --packer')
-    parser.add_argument('--async', '-a', dest='is_async', action='store_true', help='build images asynchronously. because the processes run in parallel, the output is not ordered')
+                                     epilog='example: python3 aci.py --suffix 22 --build')
     parser.add_argument('--images', '-i', nargs='*', help='names of images to build. if not specified all images will be')
+    parser.add_argument('--async', '-a', dest='is_async', action='store_true', help='build images asynchronously. because the processes run in parallel, the output is not ordered')
     parser.add_argument('--changes', '-c', nargs='*', help='paths of the files that changed to determine which images to build. if not specified all images will be built')
     parser.add_argument('--suffix', '-s', help='suffix to append to the resource group name. if not specified, the current time will be used')
-    parser.add_argument('--skip-build', dest='skip_build', action='store_true',
-                        help='skip building images with packer or azure image builder depening on the builder property in the image definition yaml')
+    parser.add_argument('--skip-build', action='store_true', help='skip building images with packer')
+
+    parser.add_argument('--subnet-id', '-sni', help='The resource id of a subnet to use for the container instance. If this is not specified, the container instance will not be created in a virtual network and have a public ip address.')
+    parser.add_argument('--storage-account', '-sa', help='The name of an existing storage account to use with the container instance. If not specified, the container instance will not mount a persistant file share.')
+    parser.add_argument('--client-id', '-cid', required=True, help='The client (app) id for the service principal to use for authentication.')
+    parser.add_argument('--client-secret', '-cs', required=True, help='The secret for the service principal to use for authentication.')
+    parser.add_argument('--repository', '-r', required=True, help='The git repository that contains your image.yml and buiild scripts.')
+    parser.add_argument('--revision', '-b', help='The git repository revision that contains your image.yml and buiild scripts.')
+    parser.add_argument('--token', '-t', help='The PAT token to use when cloning the git repository.')
 
     args = parser.parse_args()
+
+    client_id = args.client_id
+    client_secret = args.client_secret
+
+    repo = repos.parse_url(args.repository)
+
+    params = {
+        'clientId': client_id,
+        'clientSecret': client_secret,
+        'repository': repo['url'].replace('https://', f'https://{args.token}@') if args.token else repo['url']
+    }
+
+    if args.revision:
+        params['revision'] = args.revision
+
+    if args.subnet_id:
+        params['subnetId'] = args.subnet_id
+
+    if args.storage_account:
+        params['storageAccount'] = args.storage_account
 
     is_async = args.is_async
     skip_build = args.skip_build
@@ -112,7 +112,10 @@ if __name__ == '__main__':
 
     suffix = args.suffix if args.suffix else datetime.now(timezone.utc).strftime('%Y%m%d%H%M')
 
+    gallery = img.get_gallery()
+    common = img.get_common()
+
     if is_async:
-        asyncio.run(main_async(names, suffix, skip_build))
+        asyncio.run(main_async(gallery, common, names, params, suffix, skip_build))
     else:
-        main(names, suffix, skip_build)
+        main(gallery, common, names, params, suffix, skip_build)

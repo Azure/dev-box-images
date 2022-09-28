@@ -18,6 +18,7 @@ def error_exit(message):
 
 
 def get_file(dir, file, required=True):
+    '''Get the path to a yaml or yml file in a directory'''
     if not os.path.isdir(dir):
         if required:
             error_exit(f'Directory for yaml/yml {file} not found at {dir}')
@@ -41,6 +42,7 @@ def get_file(dir, file, required=True):
 
 
 def validate(path, obj, required=None, allowed=None):
+    '''validate the yaml object against the required and allowed keys'''
     if required:
         for key in required:
             if key not in obj:
@@ -57,9 +59,7 @@ def validate(path, obj, required=None, allowed=None):
 
 
 def parse(path, required=None, allowed=None) -> dict:
-    '''
-    simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation
-    '''
+    '''simple yaml parser, only supports a single level of nesting and arrays that use the '-' notation'''
     obj = {}
     with open(path, 'r') as yaml:
         parent_key = None

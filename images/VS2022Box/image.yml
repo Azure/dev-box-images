@@ -17,8 +17,6 @@
 #
 # - description: (string)
 #       The description of this gallery image definition resource
-# - builder: (string)
-#       Builder to use.  packer or azure. If not specified, packer is used
 # - buildResourceGroup: (string)
 #       Name of an existing resource group to run the build in. If not specified, a temporary one will be created
 # - keyVault: (string)

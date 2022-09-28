@@ -8,12 +8,15 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import azure
-import build
+import azure as az
+import image as img
 import loggers
+import packer
 
+# indicates if the script is running in the docker container
 in_builder = os.environ.get('ACI_IMAGE_BUILDER', False)
 in_builder = True if in_builder else False
+
 builder_version = os.environ.get('ACI_IMAGE_BUILDER_VERSION', 'unknown')
 
 log = loggers.getLogger(__name__)
@@ -22,6 +25,10 @@ log = loggers.getLogger(__name__)
 log.info(f'ACI_IMAGE_BUILDER: {in_builder}')
 log.info(f'ACI_IMAGE_BUILDER_VERSION: {builder_version}')
 log.debug(f'in_builder: {in_builder}')
+
+
+if not in_builder:
+    log.warning('Running outside of the builder container. This should only be done during testing.')
 
 
 def error_exit(message):
@@ -47,6 +54,7 @@ for env in ['BUILD_IMAGE_NAME']:
 
 image_name = os.environ['BUILD_IMAGE_NAME']
 image_path = repo / 'images' / image_name
+
 log.info(f'Image name: {image_name}')
 log.info(f'Image path: {image_path}')
 
@@ -61,10 +69,24 @@ if in_builder:
     if az_client_id and az_client_secret and az_tenant_id:
         log.info(f'Found credentials for Azure Service Principal')
         log.info(f'Logging in with Service Principal')
-        azure.cli(f'az login --service-principal -u {az_client_id} -p {az_client_secret} -t {az_tenant_id} --allow-no-subscriptions', log_command=False)
+        az.cli(f'az login --service-principal -u {az_client_id} -p {az_client_secret} -t {az_tenant_id} --allow-no-subscriptions', log_command=False)
     else:
         log.info(f'No credentials for Azure Service Principal')
         log.info(f'Logging in to Azure with managed identity')
-        azure.cli('az login --identity --allow-no-subscriptions')
+        az.cli('az login --identity --allow-no-subscriptions')
 
-build.main([image_name], suffix, skip_build=not in_builder)
+gallery = img.get_gallery()
+common = img.get_common()
+
+image = img.get(image_name, gallery, common, suffix, ensure_azure=True)
+
+skip_build = not in_builder
+
+if image['build']:
+    packer.save_vars_file(image)
+
+    if not skip_build:
+        packer.execute(image)
+
+if skip_build:
+    log.warning('Skipping build execution because --skip-build was provided')

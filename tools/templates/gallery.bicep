@@ -17,11 +17,11 @@ param devCenterId string = ''
 @description('The principal id of a service principal used in the image build pipeline. If provided the service principal will be given Owner permissions on the gallery')
 param builderPrincipalId string = ''
 
+@description('Object ID for the first-party Windows 365 enterprise application in your tenant. You find this ID in the Azure portal or via the Azure CLI: `az ad sp show --id 0af06dc6-e4b5-4f28-818e-e78e62d137a5 --query id`')
+param windows365PrinicalId string
+
 @description('Tags to apply to the resources')
 param tags object = {}
-
-@description('Object ID for the first-party Windows 365 enterprise application in your tenant. You can get this Id via the Azure CLI by running az ad sp show --id 0af06dc6-e4b5-4f28-818e-e78e62d137a5 --query id')
-param windows365PrinicalId string
 
 var devCenterName = empty(devCenterId) ? '' : last(split(devCenterId, '/'))
 var devCenterGroup = empty(devCenterId) ? '' : first(split(last(split(replace(devCenterId, 'resourceGroups', 'resourcegroups'), '/resourcegroups/')), '/'))

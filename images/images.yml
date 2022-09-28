@@ -10,8 +10,6 @@
 #       The name of the gallery image definition offer
 # - replicaLocations: (array using - notation)
 #       The target regions where the Image Version is going to be replicated to
-# - builder: (string)
-#       Builder to use.  packer or azure. If not specified, packer is used
 # - buildResourceGroup: (string)
 #       Name of an existing resource group to run the build in. If not specified, a temporary one will be created
 # - keyVault: (string)
@@ -28,7 +26,6 @@
 #       Subscription ID (GUID) of the subscription to use. If not set, the builder will use the default subscription of
 #       the authenticated user of service principal
 
-builder: packer
 publisher: Contoso
 offer: DevBox
 replicaLocations:
