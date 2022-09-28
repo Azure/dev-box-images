@@ -21,9 +21,8 @@ param principalType string = 'User'
 
 var assignmentId = guid('project${role}${resourceGroup().id}${projectName}${principalId}')
 
-var roleIdBase = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions'
-var projectAdminRoleId = '${roleIdBase}/331c37c6-af14-46d9-b9f4-e1909e1b95a0'
-var devBoxUserRoleId = '${roleIdBase}/45d50f46-0b78-4001-a660-4198cbe8cd05'
+var projectAdminRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '331c37c6-af14-46d9-b9f4-e1909e1b95a0')
+var devBoxUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '45d50f46-0b78-4001-a660-4198cbe8cd05')
 
 var roleId = role == 'ProjectAdmin' ? projectAdminRoleId : devBoxUserRoleId
 

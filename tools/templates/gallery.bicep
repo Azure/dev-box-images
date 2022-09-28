@@ -20,14 +20,15 @@ param builderPrincipalId string = ''
 @description('Tags to apply to the resources')
 param tags object = {}
 
-var windows365PrinicalId = 'df65ee7f-8ea9-481d-a20f-e7e23bcf25ed'
+@description('Object ID for the first-party Windows 365 enterprise application in your tenant. You can get this Id via the Azure CLI by running az ad sp show --id 0af06dc6-e4b5-4f28-818e-e78e62d137a5 --query id')
+param windows365PrinicalId string
 
 var devCenterName = empty(devCenterId) ? '' : last(split(devCenterId, '/'))
 var devCenterGroup = empty(devCenterId) ? '' : first(split(last(split(replace(devCenterId, 'resourceGroups', 'resourcegroups'), '/resourcegroups/')), '/'))
 var devCenterSub = empty(devCenterId) ? '' : first(split(last(split(devCenterId, '/subscriptions/')), '/'))
 
 var builderAssignmentId = guid('groupcontributor${resourceGroup().id}${name}${builderPrincipalId}')
-var contributorRoleId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c'
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 
 resource gallery 'Microsoft.Compute/galleries@2022-01-03' = {
   name: name
