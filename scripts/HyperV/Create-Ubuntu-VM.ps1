@@ -51,3 +51,9 @@ New-VM -Name $Vm_Name -MemoryStartupBytes 4096MB -Path $fullpath | Out-Null
 
 Write-Host "Attaching drive to hosted vm."
 Add-VMHardDiskDrive -VMName $Vm_Name -Path $VhdToAttach
+
+Write-Host "Enable VM Integration"
+Get-VMIntegrationService -VMName $vm_Name | ? Name -match 'Interface' | Enable-VMIntegrationService
+
+Write-Host "Increase processors and Enable processor compatibility"
+Set-VMProcessor -VMName $Vm_Name -CompatibilityForMigrationEnabled 1 -Count 2
