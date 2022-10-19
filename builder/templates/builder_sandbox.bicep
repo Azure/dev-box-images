@@ -4,9 +4,6 @@
 @description('Location for the resources. If none is provided, the resource group location is used.')
 param location string = resourceGroup().location
 
-@description('Tags to be applied to all created resources.')
-param tags object = {}
-
 // ex. contoso-images
 @description('The prefix to use in the name of all resources created. For example if Contoso-Images is provided, a key vault, storage account, and vnet will be created and named Contoso-Images-kv, contosoimagesstorage, and contoso-images-vent respectively.')
 param baseName string
@@ -14,13 +11,16 @@ param baseName string
 @description('The principal id of a service principal used in the image build pipeline. It will be givin contributor role to the resource group, and the appropriate permissions on the key vault and storage account')
 param builderPrincipalId string
 
-param vnetAddressPrefixes array = [ '10.2.0.0/16' ]
+param vnetAddressPrefixes array = [ '10.0.0.0/24' ] // 256 addresses
 
 param defaultSubnetName string = 'default'
-param defaultSubnetAddressPrefix string = '10.2.0.0/27' // 27 + 5 Azure reserved addresses
+param defaultSubnetAddressPrefix string = '10.0.0.0/25' // 123 + 5 Azure reserved addresses
 
 param builderSubnetName string = 'builders'
-param builderSubnetAddressPrefix string = '10.2.1.0/27' // 27 + 5 Azure reserved addresses
+param builderSubnetAddressPrefix string = '10.0.0.128/25' // 123 + 5 Azure reserved addresses
+
+@description('Tags to be applied to all created resources.')
+param tags object = {}
 
 var baseNameLower = toLower(trim(baseName)) // ex. 'Contoso Images' -> 'contoso images'
 var baseNameLowerNoSpace = replace(baseNameLower, ' ', '-') // ex. 'contoso images' -> 'contoso-images'
@@ -41,12 +41,10 @@ var storageName = baseNameLowerAlphaNumLength <= 17 ? '${baseNameLowerAlphaNum}s
 // req: (2-64) Alphanumerics, underscores, periods, and hyphens. Start with alphanumeric. End alphanumeric or underscore. Resource Group unique.
 var vnetName = '${baseNameLowerNoSpace}-vnet'
 
-var roleIdBase = '/subscriptions/${az.subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions'
-
 // docs: https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor
-var contributorRoleId = '${roleIdBase}/b24988ac-6180-42a0-ab88-20f7382dd24c'
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 // docs: https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#key-vault-secrets-officer
-var secretsOfficerRoleId = '${roleIdBase}/b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
+var secretsOfficerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 
 var builderGroupAssignmentId = guid('groupreader${resourceGroup().id}${baseName}${builderPrincipalId}')
 var builderSecretsAssignmentId = guid('kvsecretofficer${resourceGroup().id}${keyVaultName}${builderPrincipalId}')
