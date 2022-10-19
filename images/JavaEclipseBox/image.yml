@@ -1,0 +1,9 @@
+description: Windows 11 Enterprise + M365 Apps + Eclipse
+publisher: Contoso
+offer: DevBox
+sku: win11-eclipse
+version: 1.0.0
+os: Windows
+replicaLocations:
+  - eastus
+  - westeurope
