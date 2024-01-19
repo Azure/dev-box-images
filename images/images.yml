@@ -32,7 +32,7 @@ replicaLocations:
   - westeurope
 buildResourceGroup: devbox-experiment-ivan
 keyVault: kv-devbox-exp
-virtualNetwork: debox-vn
-virtualNetworkSubnet: default
-virtualNetworkResourceGroup: devbox-experiment-ivan
+# virtualNetwork: debox-vn
+# virtualNetworkSubnet: default
+# virtualNetworkResourceGroup: devbox-experiment-ivan
 subscription: 0f92b314-edeb-402a-8e41-88c1cfee638c
