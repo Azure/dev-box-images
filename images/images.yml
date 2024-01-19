@@ -26,14 +26,13 @@
 #       Subscription ID (GUID) of the subscription to use. If not set, the builder will use the default subscription of
 #       the authenticated user of service principal
 
-publisher: Contoso
+publisher: Aqovia
 offer: DevBox
 replicaLocations:
-  - eastus
   - westeurope
-buildResourceGroup: Contoso-Images
-keyVault: contosoimageskv
-virtualNetwork: contoso-images-vnet
+buildResourceGroup: devbox-experiment-ivan
+keyVault: kv-devbox-exp
+virtualNetwork: v-net-dev-box
 virtualNetworkSubnet: default
-virtualNetworkResourceGroup: Contoso-Images
-subscription: 00000000-0000-0000-0000-000000000000
+virtualNetworkResourceGroup: devbox-experiment-ivan
+subscription: 0f92b314-edeb-402a-8e41-88c1cfee638c
