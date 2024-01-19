@@ -39,3 +39,6 @@ offer: DevBox
 sku: win11-vs2022
 version: 1.0.0
 os: Windows
+virtualNetwork: vnet-v2
+virtualNetworkSubnet: default
+virtualNetworkResourceGroup: devbox-experiment-ivan
