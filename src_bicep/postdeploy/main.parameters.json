@@ -1,0 +1,16 @@
+{
+    "devcenterName" : "",
+    "identityName" : "",
+    "galleryName" : "",
+    "networkConnectionName" : "",
+    "projectName" : "",
+    "pool" : {
+        "name" : "",
+        "deffinitionName" : ""
+    },
+    "deffinition" : {
+        "name" : "",
+        "sku" : "",
+        "imageName" : ""
+    }
+}

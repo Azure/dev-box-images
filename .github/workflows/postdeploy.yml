@@ -1,0 +1,58 @@
+name: Postdeploy
+
+concurrency: ${{ github.ref }}
+
+on:
+  workflow_dispatch:
+  
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      RESOURCE_GROUP_NAME: "aqovia-devbox"
+      IDENTITY_NAME: "aqovia-devcenter-identity"
+      GALLARY_NAME: "aqovia_compute_gallery"
+      DEVCENTER_NAME: "aqovia-devcenter"
+      NETWORK_CONNECTION_NAME: "aqovia-devbox-network-connection"
+      PROJECT_NAME: "aqovia-devbox-project"
+      POOL_NAME: "aqovia-devbox-project-pool"
+      DEFFINITION_NAME: "aqovia-devbox-definition"
+      DEFFINITION_SKU: "general_i_8c32gb256ssd_v2" # sku of image (for getting sku list run this command "az devcenter admin sku list --query '[].name' --output table")
+      DEFFINITION_IMAGE: "Win11-DevBox" # name of image (the same name as folder in ./images)
+      
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Azure
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          
+      - name: Ensure Bicep
+        run: az bicep upgrade
+        
+      - name: Update postdeploy/main.parameters.json
+        uses: restackio/update-json-file-action@v2.0
+        with:
+          file: ./src_bicep/postdeploy/main.parameters.json
+          fields: |
+            {
+              "devcenterName" : "${{ env.DEVCENTER_NAME }}",
+              "identityName" : "${{ env.IDENTITY_NAME }}",
+              "galleryName" : "${{ env.GALLARY_NAME }}",
+              "networkConnectionName" : "${{ env.NETWORK_CONNECTION_NAME }}",
+              "projectName" : "${{ env.PROJECT_NAME }}",
+              "pool.name" : "${{ env.POOL_NAME }}",
+              "pool.deffinitionName" : "${{ env.DEFFINITION_NAME }}",
+              "deffinition.name" : "${{ env.DEFFINITION_NAME }}",
+              "deffinition.sku" : "${{ env.DEFFINITION_SKU }}",
+              "deffinition.imageName" : "${{ env.DEFFINITION_IMAGE }}"
+            }
+
+      - name: Deploy Bicep
+        working-directory: ./src_bicep
+        run: az deployment group create 
+          --name "postdeploy-${{ github.run_id }}"
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file ./postdeploy/main.bicep

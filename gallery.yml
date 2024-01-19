@@ -1,2 +1,2 @@
-name: Contoso
-resourceGroup: Contoso-Gallery
+name: aqovia_compute_gallery
+resourceGroup: aqovia-devbox

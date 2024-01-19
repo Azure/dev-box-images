@@ -33,9 +33,9 @@
 #       Subscription ID (GUID) of the subscription to use. If not set, the builder will use the default subscription of
 #       the authenticated user of service principal
 
-description: Windows 11 Enterprise + M365 Apps + VSCode
-publisher: Contoso
+description: Windows 11 Enterprise + M365 Apps + VS2022
+publisher: Aqovia
 offer: DevBox
-sku: win11-vscode
+sku: win11-vs2022
 version: 1.0.0
 os: Windows

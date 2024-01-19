@@ -1,0 +1,58 @@
+name: Predeploy
+
+concurrency: ${{ github.ref }}
+
+on: 
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      RESOURCE_GROUP_NAME: "aqovia-devbox"
+      IDENTITY_NAME: "aqovia-devcenter-identity"
+      GALLARY_NAME: "aqovia_compute_gallery"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Azure
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          
+      - name: Ensure Bicep
+        run: az bicep upgrade
+      
+      - name: Update ppredeploy/main.parameters.json
+        uses: restackio/update-json-file-action@v2.0
+        with:
+          file: ./src_bicep/predeploy/main.parameters.json
+          fields: | 
+            { 
+              "identityName" : "${{env.IDENTITY_NAME}}",
+              "galleryName": "${{env.GALLARY_NAME}}" 
+            }
+
+      - name: Deploy Bicep
+        working-directory: ./src_bicep
+        run: az deployment group create 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file ./predeploy/main.bicep 
+
+      - name: Set SubnetID to Environment Variable
+        run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name vnetBuilder --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
+    
+      - name: Set Storage Account to Environment Variable
+        run: export ID=$(az storage account list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "[?name=='aqdvbxbuilderstrg'].name" --output tsv); echo "STORAGE_ACCOUNT=$ID" >> $GITHUB_ENV
+
+      - name: Deploy Build ACI Containers
+        run: python "./builder/build.py" --async 
+          --repository "${{ github.repositoryUrl }}" 
+          --revision "${{ github.sha }}" 
+          --token "${{ github.token }}" 
+          --client-id "${{ secrets.AZURE_CLIENT_ID }}" 
+          --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" 
+          --storage-account "${{ env.STORAGE_ACCOUNT }}" 
+          --subnet-id "${{ env.SUBNET_ID }}"
+
