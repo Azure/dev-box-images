@@ -98,12 +98,12 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
         name: validImageNameLower
         properties: {
           image: container
-          ports: (empty(subnetId) ? [
+          ports: ([
             {
               port: 80
               protocol: 'TCP'
             }
-          ] : null)
+          ])
           resources: {
             requests: {
               cpu: 1
