@@ -20,7 +20,7 @@ jobs:
 
     env:
       STORAGE_ACCOUNT: experimentdevboxstg
-      SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/builders
+      SUBNET_ID: subnetid
 
     steps:
       - uses: actions/checkout@v2
