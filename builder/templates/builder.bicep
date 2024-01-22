@@ -88,9 +88,9 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     timestamp: timestamp
   }
   properties: {
-    subnetIds: (!empty(subnetId) ? [
+    subnetIds: (!empty('subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/builders') ? [
       {
-        id: subnetId
+        id: 'subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/builders'
       }
     ] : null)
     containers: [
@@ -98,7 +98,7 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
         name: validImageNameLower
         properties: {
           image: container
-          ports: (empty(subnetId) ? [
+          ports: (empty('subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/builders') ? [
             {
               port: 80
               protocol: 'TCP'
@@ -124,7 +124,7 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ]
     osType: 'Linux'
     restartPolicy: 'Never'
-    ipAddress: (empty(subnetId) ? {
+    ipAddress: (empty('subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/builders') ? {
       type: 'Public'
       ports: [
         {
