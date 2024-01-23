@@ -88,7 +88,11 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     timestamp: timestamp
   }
   properties: {
-    subnetIds: (null)
+    subnetIds: (!empty(subnetId) ? [
+      {
+        id: subnetId
+      }
+    ] : null)
     containers: [
       {
         name: validImageNameLower
@@ -120,7 +124,15 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ]
     osType: 'Linux'
     restartPolicy: 'Never'
-    ipAddress: null
+    ipAddress: (empty(subnetId) ? {
+      type: 'Public'
+      ports: [
+        {
+          port: 80
+          protocol: 'TCP'
+        }
+      ]
+    } : null)
     volumes: empty(storageAccount) ? [ repoVolume ] : [
       repoVolume
       {
