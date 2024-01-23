@@ -126,6 +126,7 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     restartPolicy: 'Never'
     ipAddress: (empty(subnetId) ? {
       type: 'Private'
+      ipadress: '10.0.1.0'
       ports: [
         {
           port: 80
