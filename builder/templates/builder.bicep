@@ -124,15 +124,16 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ]
     osType: 'Linux'
     restartPolicy: 'Never'
-    ipAddress: (empty(subnetId) ? {
-     type: 'Public'
+    ipAddress: ({
+      type: 'Private'
       ports: [
         {
           port: 80
           protocol: 'TCP'
         }
-      ] 
-    } : null)
+      ]
+      ip: '10.0.1.4'
+    })
     volumes: empty(storageAccount) ? [ repoVolume ] : [
       repoVolume
       {
