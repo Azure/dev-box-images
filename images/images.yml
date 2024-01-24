@@ -34,5 +34,5 @@ buildResourceGroup: devbox-experiment-ivan
 # keyVault: kv-devbox-exp
 # virtualNetwork: v-net-dev-box
 # virtualNetworkSubnet: default
-virtualNetworkResourceGroup: devbox-experiment-ivan
+# virtualNetworkResourceGroup: devbox-experiment-ivan
 subscription: 0f92b314-edeb-402a-8e41-88c1cfee638c
