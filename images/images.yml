@@ -31,7 +31,7 @@ offer: DevBox
 replicaLocations:
   - westeurope
 buildResourceGroup: devbox-experiment-ivan
-keyVault: kv-devbox-exp
+# keyVault: kv-devbox-exp
 virtualNetwork: v-net-dev-box
 virtualNetworkSubnet: default
 virtualNetworkResourceGroup: devbox-experiment-ivan
