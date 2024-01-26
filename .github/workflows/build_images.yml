@@ -39,6 +39,9 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
+      - name: Delete Resource Group
+        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }}
+
       - name: Deploy Resource Group
         working-directory: tools/templates
         run: az deployment sub create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ env.LOCATION }} --template-file ./ResourceGroup.bicep --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
