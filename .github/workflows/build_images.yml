@@ -40,7 +40,7 @@ jobs:
         run: az bicep upgrade
 
       - name: Deploy Resource Group
-        run: az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file ./tools/templates/ResourceGroup.bicep --parameters resourceGroupLocation=${{ env.LOCATION }} --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }}
+        run: az deployment sub create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ env.LOCATION }} --template-file resourceGroup.bicep --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
 
       # - name: Deploy Build ACI Containers
       #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
