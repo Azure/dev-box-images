@@ -1,4 +1,4 @@
-targetScope='subscription'
+targetScope='resourceGroup'
 
 param resourceGroupName string
 param resourceGroupLocation string
