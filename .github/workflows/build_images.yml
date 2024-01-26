@@ -40,7 +40,7 @@ jobs:
         run: az bicep upgrade
 
       - name: Delete Resource Group
-        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }}
+        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
 
       - name: Deploy Resource Group
         working-directory: tools/templates
