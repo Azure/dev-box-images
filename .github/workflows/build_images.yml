@@ -20,7 +20,7 @@ jobs:
     if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
     env:
-      RESOURCE_GROUP_NAME: ivan-automation-rg
+      RESOURCE_GROUP_NAME: ivanautomationrg
       LOCATION: westeurope
       AZURE_SUBSCRIPTION_ID: 0f92b314-edeb-402a-8e41-88c1cfee638c
       STORAGE_ACCOUNT: experimentdevboxstg
@@ -39,13 +39,13 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
-      # - name: Try to delete Resource Group
-      #   continue-on-error: true
-      #   run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
+      - name: Try to delete Resource Group
+        continue-on-error: true
+        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
 
-      # - name: Deploy Resource Group
-      #   working-directory: tools/templates
-      #   run: az deployment sub create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ env.LOCATION }} --template-file ResourceGroup.bicep --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
+      - name: Deploy Resource Group
+        working-directory: tools/templates
+        run: az deployment sub create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ env.LOCATION }} --template-file ResourceGroup.bicep --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
 
       - name: Deploy Storage Account
         working-directory: tools/templates
