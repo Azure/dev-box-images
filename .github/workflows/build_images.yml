@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Login to Azure
-        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }} --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }} --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
 
       # az cli installs bicep on demand the first time it's used
       # using the --async argument in the command below simultaniously invokes several commands that use bicep
