@@ -12,6 +12,7 @@ on:
       # - 'builder/**'
 
 jobs:
+
   build:
     # runs-on: windows-latest
     runs-on: ubuntu-latest
@@ -19,8 +20,10 @@ jobs:
     if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
     env:
-      STORAGE_ACCOUNT: experimentdevboxstg
-      SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/subnets/builders
+      RESOURCE_GROUP_NAME: ivan-automation-rg
+      LOCATION: westeurope
+      # STORAGE_ACCOUNT: experimentdevboxstg
+      # SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/subnets/builders
 
     steps:
       - uses: actions/checkout@v2
@@ -35,5 +38,8 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
-      - name: Deploy Build ACI Containers
-        run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
+      - name: Deploy Resource Group
+        run: az deployment group create --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file ./tools/templates/ResourceGroup.bicep --parameters resourceGroupLocation=${{ env.LOCATION }} --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }}
+
+      # - name: Deploy Build ACI Containers
+      #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
