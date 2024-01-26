@@ -49,7 +49,7 @@ jobs:
 
       - name: Deploy Storage Account
         working-directory: tools/templates
-        run: az deployment group create --name ${{ env.STORAGE_ACCOUNT }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file Storage.bicep --parameters storageName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
+        run: az deployment sub create --name ${{ env.STORAGE_ACCOUNT }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --template-file Storage.bicep --parameters storageName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
       
         # - name: Deploy Build ACI Containers
       #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
