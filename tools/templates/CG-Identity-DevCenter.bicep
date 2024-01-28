@@ -41,7 +41,6 @@ resource roleAssignmentsContributor 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
-
 resource addGallerryToDevcenter 'Microsoft.DevCenter/devcenters/galleries@2023-04-01' = {
   name: split(computeGallery.id, '/')[8]
   parent: devcenter

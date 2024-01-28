@@ -28,7 +28,7 @@ jobs:
       CG_NAME: cgName
       VNET: v-net-dev-box-ivan
       AZURE_SUBSCRIPTION_ID: 
-      # SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/subnets/builders
+      SUBNET_ID: 
 
     steps:
       - uses: actions/checkout@v2
@@ -71,6 +71,9 @@ jobs:
           --template-file VnetandSubnet.bicep
           --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
 
+      - name: Set Subscription to Environment Variable
+        run: export ID=$(az network vnet subnet list --resource-group ${{ env.AZURE_SUBSCRIPTION_ID }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
+
       - name: Deploy Identity , Dev Center , Compute Galllery
         working-directory: tools/templates
         run: az deployment group create
@@ -78,7 +81,13 @@ jobs:
           --template-file CG-Identity-DevCenter.bicep 
           --parameters location=${{ env.LOCATION }} devcenterName=${{ env.DEV_CENTER_NAME }} identityname=${{ env.MANAGE_IDENTITY_NAME }} subscriptionId=${{ env.AZURE_SUBSCRIPTION_ID }} cgName=${{ env.CG_NAME }}
       
-      
-      # - name: Deploy Build ACI Containers
-      #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
+      - name: Deploy Build ACI Containers
+        run: python "./builder/build.py" --async 
+          --repository "${{ github.repositoryUrl }}" 
+          --revision "${{ github.sha }}" 
+          --token "${{ github.token }}" 
+          --client-id "${{ secrets.AZURE_CLIENT_ID }}" 
+          --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" 
+          --storage-account "${{ env.STORAGE_ACCOUNT }}" 
+          --subnet-id "${{ env.SUBNET_ID }}"
 
