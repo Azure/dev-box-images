@@ -5,6 +5,8 @@ param cgName string
 param subscriptionId string
 param location string = resourceGroup().location
 
+targetScope = 'resourceGroup'
+
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-preview' = {
   name: identityname
   location: location 
@@ -29,17 +31,19 @@ resource devcenter 'Microsoft.DevCenter/devcenters@2023-04-01' = {
   }
 }
 
-resource rgContributor 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-  name: guid('ContributorRoleAssignment')
+resource roleAssignmentsContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid('Contributor')
+  scope: tenant()
   properties: {
-    principalId: tenant()
-
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c') // Contributor
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
 
 resource addGallerryToDevcenter 'Microsoft.DevCenter/devcenters/galleries@2023-04-01' = {
-  name: '${devcenter.name}${computeGallery.name}'
+  name: split(computeGallery.id, '/')[8]
   parent: devcenter
   properties: {
     galleryResourceId: computeGallery.id

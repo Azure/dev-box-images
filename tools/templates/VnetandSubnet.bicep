@@ -27,6 +27,8 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
   }
 }
 
+targetScope = 'resourceGroup'
+
 resource serverFarmSubnet 'Microsoft.Network/virtualNetworks/subnets@2020-06-01' = {
   name: subnetName
   parent: vnet
