@@ -58,11 +58,11 @@ jobs:
           --template-file StorageAccount.bicep
           --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
 
-      - name: Deploy VNET
+      - name: Deploy VNET and Subnet
         working-directory: tools/templates
         run: az deployment group create 
           --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          --template-file Vnet.bicep
+          --template-file VnetandSubnet.bicep
           --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
       
       # - name: Deploy Build ACI Containers
