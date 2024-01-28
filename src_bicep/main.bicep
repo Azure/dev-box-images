@@ -10,7 +10,7 @@ targetScope = 'subscription'
 
 // Resources
 module resources './modules/resources/main.bicep' = {
-  name: 'Microsoft.Resources'
+  name: 'ivanres'
   scope: subscription()
   params: {
     resourceGroups: resourceGroups

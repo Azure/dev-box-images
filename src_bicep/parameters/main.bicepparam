@@ -3,7 +3,7 @@ using '../main.bicep'
 param networkSettings = {
   resourceGroup: {
     name: ''
-    location: 'easteeurope'
+    location: 'uksouth'
     tags: {}
   }
   resources: {
@@ -23,7 +23,7 @@ param networkSettings = {
 param computeSettings = {
   resourceGroup: {
     name: ''
-    location: 'easteeurope'
+    location: 'uksouth'
     tags: {}
   }
   resources: {
@@ -38,7 +38,7 @@ param computeSettings = {
 param identitySettings = {
   resourceGroup: {
     name: ''
-    location: 'easteeurope'
+    location: 'uksouth'
     tags: {}
   }
   resources: {
@@ -51,7 +51,7 @@ param identitySettings = {
 param devcenterSettings = {
   resourceGroup: {
     name: ''
-    location: 'easteeurope'
+    location: 'uksouth'
     tags: {}
   }
   resources: {
