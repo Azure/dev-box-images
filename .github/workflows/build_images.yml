@@ -49,34 +49,47 @@ jobs:
       - name: Try to delete Resource Group
         continue-on-error: true
         run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
+      
+      - name: Build
+        run: |
+          az bicep build \
+            --file ./src_bicep/main.bicep
+            
+      - name: Deploy
+        run: |
+          az deployment sub create \
+            --name "GitHub.Actions" \
+            --location ${{ env.LOCATION }} \
+            --template-file ./src/main.bicep \
+            --parameters ./src/parameters/main.bicepparam
 
-      - name: Deploy Resource Group
-        working-directory: tools/templates
-        run: az deployment sub create 
-          --location ${{ env.LOCATION }}
-          --template-file ResourceGroup.bicep 
-          --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
+      # - name: Deploy Resource Group
+      #   working-directory: tools/templates
+      #   run: az deployment sub create 
+      #     --location ${{ env.LOCATION }}
+      #     --template-file ResourceGroup.bicep 
+      #     --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
 
-      - name: Deploy Storage Account
-        working-directory: tools/templates
-        run: az deployment group create 
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          --template-file StorageAccount.bicep
-          --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
+      # - name: Deploy Storage Account
+      #   working-directory: tools/templates
+      #   run: az deployment group create 
+      #     --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+      #     --template-file StorageAccount.bicep
+      #     --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
 
-      - name: Deploy VNET and Subnet
-        working-directory: tools/templates
-        run: az deployment group create 
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          --template-file VnetandSubnet.bicep
-          --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
+      # - name: Deploy VNET and Subnet
+      #   working-directory: tools/templates
+      #   run: az deployment group create 
+      #     --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+      #     --template-file VnetandSubnet.bicep
+      #     --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
 
-      - name: Deploy Identity , Dev Center , Compute Galllery
-        working-directory: tools/templates
-        run: az deployment group create
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }} 
-          --template-file CG-Identity-DevCenter.bicep 
-          --parameters location=${{ env.LOCATION }} devcenterName=${{ env.DEV_CENTER_NAME }} identityname=${{ env.MANAGE_IDENTITY_NAME }} subscriptionId=${{ env.AZURE_SUBSCRIPTION_ID }} cgName=${{ env.CG_NAME }}
+      # - name: Deploy Identity , Dev Center , Compute Galllery
+      #   working-directory: tools/templates
+      #   run: az deployment group create
+      #     --resource-group ${{ env.RESOURCE_GROUP_NAME }} 
+      #     --template-file CG-Identity-DevCenter.bicep 
+      #     --parameters location=${{ env.LOCATION }} devcenterName=${{ env.DEV_CENTER_NAME }} identityname=${{ env.MANAGE_IDENTITY_NAME }} subscriptionId=${{ env.AZURE_SUBSCRIPTION_ID }} cgName=${{ env.CG_NAME }}
       
       
       # - name: Deploy Build ACI Containers

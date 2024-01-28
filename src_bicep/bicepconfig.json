@@ -1,0 +1,21 @@
+{
+    "analyzers": {
+        "core": {
+            "enabled": true,
+            "verbose": false,
+            "rules": {
+                "no-unused-params": {
+                    "level": "off"
+                }
+            }
+        }
+    },
+    "cloud": {
+        "currentProfile": "AzureCloud"
+    },
+    "experimentalFeaturesEnabled": {},
+    "moduleAliases": {
+        "ts": {},
+        "br": {}
+    }
+}

@@ -28,3 +28,20 @@ resource devcenter 'Microsoft.DevCenter/devcenters@2023-04-01' = {
     }
   }
 }
+
+resource rgContributor 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+  name: guid('ContributorRoleAssignment')
+  properties: {
+    principalId: tenant()
+
+  }
+}
+
+
+resource addGallerryToDevcenter 'Microsoft.DevCenter/devcenters/galleries@2023-04-01' = {
+  name: '${devcenter.name}${computeGallery.name}'
+  parent: devcenter
+  properties: {
+    galleryResourceId: computeGallery.id
+  }
+}
