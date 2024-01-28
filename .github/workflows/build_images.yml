@@ -46,30 +46,30 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
-      # - name: Try to delete Resource Group
-      #   continue-on-error: true
-      #   run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
+      - name: Try to delete Resource Group
+        continue-on-error: true
+        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
 
-      # - name: Deploy Resource Group
-      #   working-directory: tools/templates
-      #   run: az deployment sub create 
-      #     --location ${{ env.LOCATION }}
-      #     --template-file ResourceGroup.bicep 
-      #     --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
+      - name: Deploy Resource Group
+        working-directory: tools/templates
+        run: az deployment sub create 
+          --location ${{ env.LOCATION }}
+          --template-file ResourceGroup.bicep 
+          --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
 
-      # - name: Deploy Storage Account
-      #   working-directory: tools/templates
-      #   run: az deployment group create 
-      #     --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-      #     --template-file StorageAccount.bicep
-      #     --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
+      - name: Deploy Storage Account
+        working-directory: tools/templates
+        run: az deployment group create 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file StorageAccount.bicep
+          --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
 
-      # - name: Deploy VNET and Subnet
-      #   working-directory: tools/templates
-      #   run: az deployment group create 
-      #     --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-      #     --template-file VnetandSubnet.bicep
-      #     --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
+      - name: Deploy VNET and Subnet
+        working-directory: tools/templates
+        run: az deployment group create 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file VnetandSubnet.bicep
+          --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
 
       - name: Deploy Identity , Dev Center , Compute Galllery
         working-directory: tools/templates
