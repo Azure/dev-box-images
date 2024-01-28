@@ -22,8 +22,10 @@ jobs:
     env:
       RESOURCE_GROUP_NAME: ivanautomationrg
       LOCATION: westeurope
-      AZURE_SUBSCRIPTION_ID: 0f92b314-edeb-402a-8e41-88c1cfee638c
       STORAGE_ACCOUNT: experimentdevboxstg1
+      DEV_CENTER_NAME: devcenter
+      MANAGE_IDENTITY_NAME: identity
+      CG_NAME: cgName
       VNET: v-net-dev-box-ivan
       # SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/subnets/builders
 
@@ -32,6 +34,8 @@ jobs:
 
       - name: Login to Azure
         run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          export AZURE_SUBSCRIPTION_ID=$(az account show --query "id" --output tsv)
+          echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> $GITHUB_ENV
 
       # az cli installs bicep on demand the first time it's used
       # using the --async argument in the command below simultaniously invokes several commands that use bicep
@@ -64,6 +68,14 @@ jobs:
           --resource-group ${{ env.RESOURCE_GROUP_NAME }}
           --template-file VnetandSubnet.bicep
           --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
+
+      - name: Deploy Identity , Dev Center , Compute Galllery
+        working-directory: tools/templates
+        run: az deployment group create
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} 
+          --template-file CG-Identity-DevCenter.bicep 
+          --parameters location=${{ env.LOCATION }} devcenterName=${{ env.DEV_CENTER_NAME }} identityname=${{ env.MANAGE_IDENTITY_NAME }} subscriptionId=${{ env.AZURE_SUBSCRIPTION_ID }} cgName=${{ env.CG_NAME }}
+      
       
       # - name: Deploy Build ACI Containers
       #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"
