@@ -24,6 +24,7 @@ jobs:
       LOCATION: westeurope
       AZURE_SUBSCRIPTION_ID: 0f92b314-edeb-402a-8e41-88c1cfee638c
       STORAGE_ACCOUNT: experimentdevboxstg1
+      VNET: v-net-dev-box-ivan
       # SUBNET_ID: /subscriptions/0f92b314-edeb-402a-8e41-88c1cfee638c/resourceGroups/devbox-experiment-ivan/providers/Microsoft.Network/virtualNetworks/v-net-dev-box/subnets/builders
 
     steps:
@@ -45,7 +46,10 @@ jobs:
 
       - name: Deploy Resource Group
         working-directory: tools/templates
-        run: az deployment sub create --location ${{ env.LOCATION }} --template-file ResourceGroup.bicep --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
+        run: az deployment sub create 
+          --location ${{ env.LOCATION }}
+          --template-file ResourceGroup.bicep 
+          --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
 
       - name: Deploy Storage Account
         working-directory: tools/templates
@@ -53,6 +57,13 @@ jobs:
           --resource-group ${{ env.RESOURCE_GROUP_NAME }}
           --template-file StorageAccount.bicep
           --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
+
+      - name: Deploy Build Subnet
+        working-directory: tools/templates
+        run: az deployment group create 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file Vnet.bicep
+          --parameters subnetName=builders location=${{ env.LOCATION }} name=${{ env.VNET }} 
       
       # - name: Deploy Build ACI Containers
       #   run: python "./builder/build.py" --async --repository "${{ github.repositoryUrl }}" --revision "${{ github.sha }}" --token "${{ github.token }}" --client-id "${{ secrets.AZURE_CLIENT_ID }}" --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" --storage-account "${{ env.STORAGE_ACCOUNT }}" --subnet-id "${{ env.SUBNET_ID }}"

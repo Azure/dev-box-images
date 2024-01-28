@@ -17,28 +17,30 @@ param addressPrefixes array = [ '10.4.0.0/16' ]
 param subnetName string = 'default'
 param subnetAddressPrefix string = '10.4.0.0/24' // 250 + 5 Azure reserved addresses
 
-@description('Tags to apply to the resources')
-param tags object = {}
-
-resource vnet 'Microsoft.Network/virtualNetworks@2021-03-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
   name: name
   location: location
   properties: {
     addressSpace: {
       addressPrefixes: addressPrefixes
     }
-    subnets: [
+  }
+}
+
+resource serverFarmSubnet 'Microsoft.Network/virtualNetworks/subnets@2020-06-01' = {
+  name: subnetName
+  parent: vnet
+  properties: { 
+    addressPrefix: subnetAddressPrefix
+    delegations: [
       {
-        name: subnetName
+        name: 'Microsoft.ContainerInstance.containerGroups'
         properties: {
-          addressPrefix: subnetAddressPrefix
-          privateEndpointNetworkPolicies: 'Disabled'
-          privateLinkServiceNetworkPolicies: 'Enabled'
+          serviceName: 'Microsoft.ContainerInstance.containerGroups'
         }
       }
     ]
   }
-  tags: tags
 }
 
 output id string = vnet.id
