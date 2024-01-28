@@ -34,9 +34,9 @@ resource serverFarmSubnet 'Microsoft.Network/virtualNetworks/subnets@2020-06-01'
     addressPrefix: subnetAddressPrefix
     delegations: [
       {
-        name: 'Microsoft.ContainerInstance.containerGroups'
+        name: 'Microsoft.ContainerInstance/containerGroups'
         properties: {
-          serviceName: 'Microsoft.ContainerInstance.containerGroups'
+          serviceName: 'Microsoft.ContainerInstance/containerGroups'
         }
       }
     ]
