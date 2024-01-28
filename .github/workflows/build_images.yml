@@ -34,8 +34,10 @@ jobs:
 
       - name: Login to Azure
         run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-          export AZURE_SUBSCRIPTION_ID=$(az account show --query "id" --output tsv)
-          echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> $GITHUB_ENV
+          
+      - name: Set Subscription to Environment Variable
+        run: export AZURE_SUBSCRIPTION_ID=$(az account show --query "id" --output tsv)
+            echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> $GITHUB_ENV
 
       # az cli installs bicep on demand the first time it's used
       # using the --async argument in the command below simultaniously invokes several commands that use bicep
