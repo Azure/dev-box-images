@@ -49,16 +49,6 @@ jobs:
       - name: Try to delete Resource Group
         continue-on-error: true
         run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
-      
-      - name: Build
-        run: az bicep build --file ./src_bicep/main.bicep
-            
-      - name: Deploy
-        run: az deployment sub create
-          --name "GitHub.Actions"
-          --location ${{ env.LOCATION }}
-          --template-file ./src_bicep/main.bicep
-          --parameters ./src_bicep/parameters/main.bicepparam
 
       - name: Deploy Resource Group
         working-directory: tools/templates
