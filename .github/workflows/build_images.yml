@@ -52,16 +52,16 @@ jobs:
       
       - name: Build
         run: |
-          az bicep build \
-            --file ./src_bicep/main.bicep
+          az bicep build
+          --file ./src_bicep/main.bicep
             
       - name: Deploy
         run: |
-          az deployment sub create \
-            --name "GitHub.Actions" \
-            --location ${{ env.LOCATION }} \
-            --template-file ./src/main.bicep \
-            --parameters ./src/parameters/main.bicepparam
+          az deployment sub create
+            --name "GitHub.Actions"
+            --location ${{ env.LOCATION }}
+            --template-file ./src_bicep/main.bicep
+            --parameters ./src_bicep/parameters/main.bicepparam
 
       # - name: Deploy Resource Group
       #   working-directory: tools/templates
