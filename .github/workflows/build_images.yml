@@ -49,9 +49,9 @@ jobs:
 
       - name: Deploy Storage Account
         working-directory: tools/templates
-        run: az deployment group create \
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-          --template-file StorageAccount.bicep \
+        run: az deployment group create 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          --template-file StorageAccount.bicep
           --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
       
       # - name: Deploy Build ACI Containers
