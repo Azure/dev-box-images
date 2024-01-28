@@ -2,34 +2,34 @@ using '../main.bicep'
 
 param networkSettings = {
   resourceGroup: {
-    name: ''
-    location: 'uksouth'
+    name: 'resourceGroup'
+    location: 'westeurope'
     tags: {}
   }
   resources: {
     virtualNetwork: {
-      name: ''
+      name: 'virtualNetwork'
       addressPrefix: '10.0.0.0/16'
       subnet: {
         addressPrefix: '10.0.0.0/24'
       }
     }
     securityGroup: {
-      name: ''
+      name: 'securityGroup'
     }
   }
 }
 
 param computeSettings = {
   resourceGroup: {
-    name: ''
-    location: 'uksouth'
+    name: 'resourceGroup'
+    location: 'westeurope'
     tags: {}
   }
   resources: {
     galleries: [
       {
-        name: ''
+        name: '34'
       }
     ]
   }
@@ -37,30 +37,30 @@ param computeSettings = {
 
 param identitySettings = {
   resourceGroup: {
-    name: ''
-    location: 'uksouth'
+    name: 'resourceGroup'
+    location: 'westeurope'
     tags: {}
   }
   resources: {
     managedIdentity: {
-      name: ''
+      name: '46'
     }
   }
 }
 
 param devcenterSettings = {
   resourceGroup: {
-    name: ''
-    location: 'uksouth'
+    name: 'resourceGroup'
+    location: 'westeurope'
     tags: {}
   }
   resources: {
     networkConnection: {
-      name: ''
-      resourceGroup: ''
+      name: 'virtualNetwork'
+      resourceGroup: 'securityGroup'
     }
     devcenter: {
-      name: ''
+      name: 'devcenter'
     }
     definitions: [
       {
