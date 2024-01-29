@@ -72,7 +72,7 @@ jobs:
           --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
 
       - name: Set Subscription to Environment Variable
-        run: export ID=$(az network vnet subnet list --resource-group ${{ env.AZURE_SUBSCRIPTION_ID }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
+        run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
 
       - name: Deploy Identity , Dev Center , Compute Galllery
         working-directory: tools/templates
