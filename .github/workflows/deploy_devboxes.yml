@@ -1,0 +1,29 @@
+name: Deploy Dev Boxes
+
+on:
+  workflow_dispatch:
+  push:
+    branches: []
+
+jobs:
+  build:
+    # runs-on: windows-latest
+    runs-on: ubuntu-latest
+
+    env:
+      RESOURCE_GROUP_NAME: ivanautomationrg
+      LOCATION: westeurope
+      DEV_CENTER_NAME: devcenter
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Azure
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          
+      # az cli installs bicep on demand the first time it's used
+      # using the --async argument in the command below simultaniously invokes several commands that use bicep
+      # so if bicep isn't already installed, the all initiate the install which throws a file busy error so we
+      # execute an arbitrary az bicep command here (and get the latest updates in the process)
+      - name: Ensure Bicep
+        run: az bicep upgrade
