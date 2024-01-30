@@ -45,8 +45,9 @@ jobs:
         run: |
           az deployment sub create \
             --name "GitHub.Actions" \
+            --location "westeurope" \
             --template-file ./src_bicep/main.bicep \
-            --parameters ./src_bicep/parameters/main.bicepparam
+            --parameters ./src_bicep/parameters/firststage.bicepparam
 
       - name: Deploy Build ACI Containers
         run: python "./builder/build.py" --async 
