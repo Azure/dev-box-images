@@ -41,10 +41,10 @@ jobs:
       - name: Deploy
         working-directory: ./src_bicep
         run: az deployment sub create 
-            --name "GitHub.Actions" 
+            --name "GitHub.Actions - first stage" 
             --location "westeurope" 
             --template-file firststage.bicep 
-            --parameters parameters/main.bicepparam
+            --parameters parameters/firststage.bicepparam
 
       - name: Set Subscription to Environment Variable
         run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV

@@ -11,7 +11,7 @@ targetScope = 'resourceGroup'
 // Projects
 resource projects 'Microsoft.DevCenter/projects@2023-04-01' = [for project in settings.resources.projects: {
   name: project.name
-  location: settings.resourceGroup.location
+  location: location
   properties: {
     devCenterId: devcenter.id
     description: project.description
@@ -26,7 +26,7 @@ module pools './pools/main.bicep' = [for (project, index) in settings.resources.
   name: 'Microsoft.DevCenter.Projects.${index}.Pools'
   params: {
     project: project
-    location: settings.resourceGroup.location
+    location: location
     connectionName: settings.resources.networkConnection.name
   }
 }]
@@ -44,3 +44,5 @@ resource devcenter 'Microsoft.DevCenter/devcenters@2023-04-01' existing = {
 // ----------
 
 param settings object
+param location string = resourceGroup().location
+

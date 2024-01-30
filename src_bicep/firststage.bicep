@@ -70,21 +70,6 @@ module storage './modules/storage/main.bicep' = {
   ]
 }
 
-// // DevCenter
-// module devcenter 'modules/devcenter/main.bicep' = {
-//   name: 'Microsoft.DevCenter'
-//   scope: resourceGroup(devcenterSettings.resourceGroup.name)
-//   params: {
-//     settings: devcenterSettings
-//     identityId: identity.outputs.identityId
-//     subnetId: network.outputs.subnetId
-//     galleryIds: compute.outputs.galleryIds
-//   }
-//   dependsOn: [
-//     resources
-//   ]
-// }
-
 // ----------
 // Parameters
 // ----------
@@ -93,5 +78,4 @@ param resourseGroupSettings object
 param identitySettings object
 param networkSettings object
 param computeSettings object
-param devcenterSettings object
 param storageAccountSettings object

@@ -11,7 +11,7 @@ targetScope = 'resourceGroup'
 // DevCenter
 resource devcenter 'Microsoft.DevCenter/devcenters@2023-04-01' = {
   name: settings.resources.devcenter.name
-  location: settings.resourceGroup.location
+  location: location
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -33,11 +33,10 @@ resource attachedNetworks 'Microsoft.DevCenter/devcenters/attachednetworks@2023-
 // Network Connection
 resource networkConnection 'Microsoft.DevCenter/networkConnections@2023-04-01' = {
   name: settings.resources.networkConnection.name
-  location: settings.resourceGroup.location
+  location: location
   properties: {
     domainJoinType: 'AzureADJoin'
     subnetId: subnetId
-    networkingResourceGroupName: settings.resources.networkConnection.resourceGroup
   }
 }
 
@@ -49,6 +48,7 @@ module definitions 'definitions/main.bicep' = {
   name: 'Microsoft.DevCenter.Definitions'
   params: {
     settings: settings
+    location: location
   }
   dependsOn: [
     devcenter
@@ -60,7 +60,7 @@ module galleries 'galleries/main.bicep' = {
   name: 'Microsoft.DevCenter.Galleries'
   params: {
     settings: settings
-    galleryIds: galleryIds
+    galeryName: galeryName
   }
   dependsOn: [
     devcenter
@@ -72,6 +72,7 @@ module projects 'projects/main.bicep' = {
   name: 'Microsoft.DevCenter.Projects'
   params: {
     settings: settings
+    location: location
   }
   dependsOn: [
     devcenter
@@ -88,4 +89,6 @@ param settings object
 
 param identityId string
 param subnetId string
-param galleryIds array
+param galeryName string
+param resourceGroupname string
+param location string = resourceGroup().location
