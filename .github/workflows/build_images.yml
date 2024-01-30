@@ -20,14 +20,9 @@ jobs:
     if: "!contains(join(github.event.commits.*.message), '+nobuild')"
 
     env:
-      RESOURCE_GROUP_NAME: ivanautomationrg
-      LOCATION: westeurope
-      STORAGE_ACCOUNT: experimentdevboxstg1
-      DEV_CENTER_NAME: devcenter
-      MANAGE_IDENTITY_NAME: identity
-      CG_NAME: cgName
-      VNET: v-net-dev-box-ivan
-      AZURE_SUBSCRIPTION_ID: 
+      RESOURCE_GROUP_NAME: resourceGroupName
+      STORAGE_ACCOUNT: experimentdevboxstg12
+      VNET: vnet
       SUBNET_ID: 
 
     steps:
@@ -36,9 +31,6 @@ jobs:
       - name: Login to Azure
         run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
           
-      - name: Set Subscription to Environment Variable
-        run: export ID=$(az account show --query "id" --output tsv); echo "AZURE_SUBSCRIPTION_ID=$ID" >> $GITHUB_ENV
-
       # az cli installs bicep on demand the first time it's used
       # using the --async argument in the command below simultaniously invokes several commands that use bicep
       # so if bicep isn't already installed, the all initiate the install which throws a file busy error so we
@@ -46,41 +38,16 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
-      - name: Try to delete Resource Group
-        continue-on-error: true
-        run: az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes
-
-      - name: Deploy Resource Group
-        working-directory: tools/templates
-        run: az deployment sub create 
-          --location ${{ env.LOCATION }}
-          --template-file ResourceGroup.bicep 
-          --parameters resourceGroupName=${{ env.RESOURCE_GROUP_NAME }} resourceGroupLocation=${{ env.LOCATION }}
-
-      - name: Deploy Storage Account
-        working-directory: tools/templates
-        run: az deployment group create 
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          --template-file StorageAccount.bicep
-          --parameters storageAccountName=${{ env.STORAGE_ACCOUNT }} location=${{ env.LOCATION }}
-
-      - name: Deploy VNET and Subnet
-        working-directory: tools/templates
-        run: az deployment group create 
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          --template-file VnetandSubnet.bicep
-          --parameters location=${{ env.LOCATION }} name=${{ env.VNET }} 
-
       - name: Set Subscription to Environment Variable
         run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
-
-      - name: Deploy Identity , Dev Center , Compute Galllery
-        working-directory: tools/templates
-        run: az deployment group create
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }} 
-          --template-file CG-Identity-DevCenter.bicep 
-          --parameters location=${{ env.LOCATION }} devcenterName=${{ env.DEV_CENTER_NAME }} identityname=${{ env.MANAGE_IDENTITY_NAME }} subscriptionId=${{ env.AZURE_SUBSCRIPTION_ID }} cgName=${{ env.CG_NAME }}
       
+      - name: Deploy
+        run: |
+          az deployment sub create \
+            --name "GitHub.Actions" \
+            --template-file ./src_bicep/main.bicep \
+            --parameters ./src_bicep/parameters/main.bicepparam
+
       - name: Deploy Build ACI Containers
         run: python "./builder/build.py" --async 
           --repository "${{ github.repositoryUrl }}" 

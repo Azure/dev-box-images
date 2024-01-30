@@ -2,8 +2,6 @@ name: Deploy Dev Boxes
 
 on:
   workflow_dispatch:
-  push:
-    branches: []
 
 jobs:
   build:
@@ -13,6 +11,7 @@ jobs:
     env:
       RESOURCE_GROUP_NAME: ivanautomationrg
       LOCATION: westeurope
+      CG_NAME: cgName
       DEV_CENTER_NAME: devcenter
 
     steps:
@@ -27,3 +26,5 @@ jobs:
       # execute an arbitrary az bicep command here (and get the latest updates in the process)
       - name: Ensure Bicep
         run: az bicep upgrade
+
+      

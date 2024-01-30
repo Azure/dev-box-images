@@ -30,4 +30,4 @@ publisher: Aqovia
 offer: DevBox
 replicaLocations:
   - westeurope
-buildResourceGroup: ivanautomationrg
+buildResourceGroup: resourceGroupName
