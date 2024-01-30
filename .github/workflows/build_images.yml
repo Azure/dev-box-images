@@ -41,7 +41,7 @@ jobs:
       - name: Deploy
         working-directory: ./src_bicep
         run: az deployment sub create 
-            --name "GitHub.Actions - first stage" 
+            --name "GitHub.Actions-first.stage" 
             --location "westeurope" 
             --template-file firststage.bicep 
             --parameters parameters/firststage.bicepparam
