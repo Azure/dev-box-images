@@ -37,14 +37,7 @@ jobs:
       # execute an arbitrary az bicep command here (and get the latest updates in the process)
       - name: Ensure Bicep
         run: az bicep upgrade
-
-      - name: Set Subscription to Environment Variable
-        run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
       
-      - name: log
-        working-directory: ./src_bicep
-        run: ls
-        
       - name: Deploy
         working-directory: ./src_bicep
         run: az deployment sub create 
@@ -53,6 +46,9 @@ jobs:
             --template-file firststage.bicep 
             --parameters parameters/main.bicepparam
 
+      - name: Set Subscription to Environment Variable
+        run: export ID=$(az network vnet subnet list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --vnet-name ${{ env.VNET }} --query "[?name=='default'].id" --output tsv); echo "SUBNET_ID=$ID" >> $GITHUB_ENV
+    
       - name: Deploy Build ACI Containers
         run: python "./builder/build.py" --async 
           --repository "${{ github.repositoryUrl }}" 
