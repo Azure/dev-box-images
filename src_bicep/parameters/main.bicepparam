@@ -1,4 +1,4 @@
-using '../main.bicep'
+using '../firststage.bicep'
 
 param resourseGroupSettings = {
     name: 'resourceGroupName'
