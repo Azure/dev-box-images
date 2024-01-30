@@ -47,7 +47,7 @@ jobs:
             --name "GitHub.Actions" 
             --location "westeurope" 
             --template-file main.bicep 
-            --parameters ./parameters/main.bicepparam
+            --parameters parameters/main.bicepparam
 
       - name: Deploy Build ACI Containers
         run: python "./builder/build.py" --async 
