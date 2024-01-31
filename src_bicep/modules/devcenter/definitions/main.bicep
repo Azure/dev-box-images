@@ -15,7 +15,7 @@ resource definitions 'Microsoft.DevCenter/devcenters/devboxdefinitions@2023-04-0
   location: location
   properties: {
     imageReference: {
-      id: '${devcenter.id}/galleries/default/images/${definition.image}'
+      id: '${devcenter.id}/galleries/${settings.resources.compute}/images/${definition.image}'
     }
     sku: {
       name: skus[definition.sku]

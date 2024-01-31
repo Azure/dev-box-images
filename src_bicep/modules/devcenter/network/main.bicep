@@ -23,14 +23,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
         name: 'default'
         properties: {
           addressPrefix: settings.resources.virtualNetwork.subnet.addressPrefix
-          delegations: [
-            {
-              name: 'Microsoft.ContainerInstance/containerGroups'
-              properties: {
-                serviceName: 'Microsoft.ContainerInstance/containerGroups'
-              }
-            }
-          ]
           networkSecurityGroup: {
             id: securityGroup.id
           }

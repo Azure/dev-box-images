@@ -22,6 +22,7 @@ param networkSettings = {
 
 param devcenterSettings = {
   resources: {
+    compute: gelaryName
     networkConnection: {
       name: networkName
       resourceGroup: resourceGroupName
@@ -31,13 +32,13 @@ param devcenterSettings = {
     }
     definitions: [
       {
-        name: 'devboxforivan'
-        image: 'VS2022Box'
+        name: 'standard'
+        image: 'WS11-dev-preinstalled-software'
         sku: '8-vcpu-32gb-ram-256-ssd'
       }
       {
         name: 'office'
-        image: 'VS2022Box'
+        image: 'WS11-dev-preinstalled-software'
         sku: '8-vcpu-32gb-ram-256-ssd'
       }
     ]
@@ -48,7 +49,7 @@ param devcenterSettings = {
         pools: [
           {
             name: 'standard'
-            definition: 'devboxforivan'
+            definition: 'standard'
             administrator: 'Enabled'
           }
           {

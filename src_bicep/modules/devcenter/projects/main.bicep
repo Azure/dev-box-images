@@ -27,7 +27,7 @@ module pools './pools/main.bicep' = [for (project, index) in settings.resources.
   params: {
     project: project
     location: location
-    connectionName: settings.resources.networkConnection.name
+    connectionName: 'default'
   }
 }]
 

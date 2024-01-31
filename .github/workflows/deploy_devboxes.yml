@@ -27,4 +27,9 @@ jobs:
       - name: Ensure Bicep
         run: az bicep upgrade
 
-      
+      - name: Postdeploy Bicep
+        working-directory: ./src_bicep
+        run: az deployment group create 
+          --resource-group resourceGroupName 
+          --template-file ./postdeploy.bicep 
+          --parameters ./parameters/postdeploy.bicepparam

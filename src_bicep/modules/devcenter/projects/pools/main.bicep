@@ -17,7 +17,7 @@ resource pools 'Microsoft.DevCenter/projects/pools@2023-04-01' = [for pool in pr
     devBoxDefinitionName: pool.definition
     licenseType: 'Windows_Client'
     localAdministrator: pool.administrator
-    networkConnectionName: null
+    networkConnectionName: connectionName
     stopOnDisconnect: {
       status: 'Disabled'
     }
