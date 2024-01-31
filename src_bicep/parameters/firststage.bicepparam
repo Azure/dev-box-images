@@ -23,7 +23,7 @@ param networkSettings = {
 }
 
 param computeSettings = {
-  galeryName: 'cgName1233'
+  galeryName: 'cgName123'
 }
 
 param identitySettings = {
