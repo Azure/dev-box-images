@@ -1,9 +1,24 @@
-using '../secondstage.bicep'
+using '../postdeploy.bicep'
 
 param resourceGroupName = 'resourceGroupName'
 param identityName = 'identityName'
 param networkName = 'vnet'
 param gelaryName = 'cgName123'
+
+param networkSettings = {
+  resources: {
+    virtualNetwork: {
+      name: 'vnet'
+      addressPrefix: '10.0.0.0/16'
+      subnet: {
+        addressPrefix: '10.0.0.0/24'
+      }
+    }
+    securityGroup: {
+      name: 'securityGroup'
+    }
+  }
+}
 
 param devcenterSettings = {
   resources: {

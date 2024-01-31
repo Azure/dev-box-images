@@ -8,6 +8,17 @@ targetScope = 'resourceGroup'
 // Resources
 // ---------
 
+//Networck
+module network 'network/main.bicep' = {
+  name: 'Microsoft.Network'
+  scope: resourceGroup(resourceGroupname)
+  params: {
+    settings: networkSettings
+    location: location
+    devcenterName: settings.resources.devcenter.name
+  }
+}
+
 // DevCenter
 resource devcenter 'Microsoft.DevCenter/devcenters@2023-04-01' = {
   name: settings.resources.devcenter.name
@@ -32,11 +43,11 @@ resource attachedNetworks 'Microsoft.DevCenter/devcenters/attachednetworks@2023-
 
 // Network Connection
 resource networkConnection 'Microsoft.DevCenter/networkConnections@2023-04-01' = {
-  name: settings.resources.networkConnection.name
+  name: '${devcenter.name}-${settings.resources.networkConnection.name}'
   location: location
   properties: {
     domainJoinType: 'AzureADJoin'
-    subnetId: subnetId
+    subnetId: network.outputs.subnetId
   }
 }
 
@@ -86,9 +97,8 @@ module projects 'projects/main.bicep' = {
 // ----------
 
 param settings object
-
 param identityId string
-param subnetId string
 param galeryName string
 param resourceGroupname string
+param networkSettings object
 param location string = resourceGroup().location

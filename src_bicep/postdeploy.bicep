@@ -12,10 +12,6 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   name: identityName
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' existing = {
-  name: networkName
-}
-
 resource gallery 'Microsoft.Compute/galleries@2022-03-03' existing = {
   name: gelaryName
 }
@@ -31,14 +27,13 @@ module devcenter 'modules/devcenter/main.bicep' = {
   params: {
     settings: devcenterSettings
     identityId: managedIdentity.id
-    subnetId: virtualNetwork.properties.subnets[0].id // we need use second one 
     resourceGroupname: resourceGroupName
     location: location
+    networkSettings: networkSettings
     galeryName: gallery.name
   }
   dependsOn: [
     managedIdentity
-    virtualNetwork
     gallery
   ]
 }
@@ -51,5 +46,6 @@ param devcenterSettings object
 param identityName string
 param networkName string
 param gelaryName string
+param networkSettings object
 param resourceGroupName string
 param location string = resourceGroup().location

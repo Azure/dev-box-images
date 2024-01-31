@@ -1,4 +1,4 @@
-using '../firststage.bicep'
+using '../predeploy.bicep'
 
 param resourseGroupSettings = {
     name: 'resourceGroupName'
@@ -13,11 +13,7 @@ param networkSettings = {
       addressPrefix: '10.0.0.0/16'
       subnet: {
         addressPrefix: '10.0.0.0/24'
-        builderAddressPrefix: '10.4.1.0/24'
       }
-    }
-    securityGroup: {
-      name: 'securityGroupName'
     }
   }
 }

@@ -10,7 +10,7 @@ targetScope = 'resourceGroup'
 
 // Virtual Network
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
-  name: settings.resources.virtualNetwork.name
+  name: '${devcenterName}-${settings.resources.virtualNetwork.name}'
   location: location
   properties: {
     addressSpace: {
@@ -31,22 +31,22 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
               }
             }
           ]
-          // networkSecurityGroup: {
-          //   id: securityGroup.id
-          // }
+          networkSecurityGroup: {
+            id: securityGroup.id
+          }
         }
       }
     ]
   }
 }
 
-// resource securityGroup 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
-//   name: settings.resources.securityGroup.name
-//   location: location
-//   properties: {
-//     securityRules: []
-//   }
-// }
+resource securityGroup 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+  name: settings.resources.securityGroup.name
+  location: location
+  properties: {
+    securityRules: []
+  }
+}
 
 // ----------
 // Parameters
@@ -54,6 +54,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 
 param settings object
 param location string
+param devcenterName string
 
 // -------
 // Outputs
