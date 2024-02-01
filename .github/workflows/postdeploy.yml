@@ -3,8 +3,6 @@ name: Postdeploy
 concurrency: ${{ github.ref }}
 
 on:
-  push:
-    branches: [main, automation]
   workflow_dispatch:
   
     

@@ -2,14 +2,10 @@ name: Predeploy
 
 concurrency: ${{ github.ref }}
 
-on:
-  workflow_dispatch:
+on: 
   push:
     branches: [main, automation]
-    paths:
-      - 'images/**'
-      - 'scripts/**'
-      # - 'builder/**'
+  workflow_dispatch:
 
 jobs:
 
