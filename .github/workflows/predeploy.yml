@@ -1,4 +1,4 @@
-name: Build Images
+name: Predeploy
 
 concurrency: ${{ github.ref }}
 
