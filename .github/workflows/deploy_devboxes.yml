@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RESOURCE_GROUP_NAME: ivanautomationrg
-      LOCATION: westeurope
-      CG_NAME: cgName
-      DEV_CENTER_NAME: devcenter
+      RESOURCE_GROUP_NAME: resourceGroupName
 
     steps:
       - uses: actions/checkout@v2
@@ -34,6 +31,6 @@ jobs:
       - name: Postdeploy Bicep
         working-directory: ./src_bicep
         run: az deployment group create 
-          --resource-group resourceGroupName 
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }}
           --template-file ./postdeploy.bicep 
           --parameters ./parameters/postdeploy.bicepparam
