@@ -3,9 +3,10 @@ name: Deploy Dev Boxes
 concurrency: ${{ github.ref }}
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
+  workflow_dispatch:
+  
     
 jobs:
   build:
