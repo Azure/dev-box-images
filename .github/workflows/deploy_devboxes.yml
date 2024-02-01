@@ -1,8 +1,12 @@
 name: Deploy Dev Boxes
 
+concurrency: ${{ github.ref }}
+
 on:
   workflow_dispatch:
-
+  push:
+    branches: [main]
+    
 jobs:
   build:
     # runs-on: windows-latest
