@@ -5,7 +5,7 @@
 param location string = resourceGroup().location
 
 @description('Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries.')
-param container string = 'ghcr.io/azure/dev-box-images/builder:latest'
+param container string = 'ghcr.io/azure/dev-box-images/builder'
 
 @secure()
 @description('The git repository that contains your image.yml and buiild scripts.')
@@ -88,22 +88,22 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     timestamp: timestamp
   }
   properties: {
-    subnetIds: ([
+    subnetIds: (!empty(subnetId) ? [
       {
         id: subnetId
       }
-    ])
+    ] : null)
     containers: [
       {
         name: validImageNameLower
         properties: {
           image: container
-          ports: ([
+          ports: (empty(subnetId) ? [
             {
               port: 80
               protocol: 'TCP'
             }
-          ])
+          ] : null)
           resources: {
             requests: {
               cpu: 1
@@ -124,15 +124,15 @@ resource group 'Microsoft.ContainerInstance/containerGroups@2021-10-01' = {
     ]
     osType: 'Linux'
     restartPolicy: 'Never'
-    ipAddress: ({
-      type: 'Private'
+    ipAddress: (empty(subnetId) ? {
+      type: 'Public'
       ports: [
         {
           port: 80
           protocol: 'TCP'
         }
       ]
-    })
+    } : null)
     volumes: empty(storageAccount) ? [ repoVolume ] : [
       repoVolume
       {
